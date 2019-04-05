@@ -230,12 +230,21 @@ public:
     }
 
     if (!new_headers_from_upstream.empty()) {
-      // new_headers_from_upstream has append = true. The current implementation ignores to set
-      // multiple headers that are not present in the original request headers. In order to add
-      // headers with the same key multiple times, setting response headers with append = false and
-      // append = true is required.
-      EXPECT_THAT(new_headers_from_upstream,
-                  Not(Http::IsSubsetOfHeaders(upstream_request_->headers())));
+      // new_headers_from_upstream has the `append=true` flag set, which tells Envoy to append to
+      // the existing header if it exists, and to discard the insertion otherwise. There's a
+      // "TODO(dio)" in ext_authz.cc to add a flag to make it be "append-if-set or set-if-unset",
+      // but for now it's just "set-if-unset".
+      //
+      // Because new_headers_from_upstream has `append=true` headers that aren't in the incoming
+      // request, we expect those headers to be absent in the modified outgoing (upstream) request.
+      // So let's verify that new_headers_from_upstream has headers that are not in
+      // upstream_request_->headers().
+      //
+      // FIXME(lukeshu): For Ambassador we patch Envoy to unconditionally enable the "append-if-set
+      // or set-if-unset" behavior; we always do the thing that dio has a TODO to add a flag for.
+      // So we need to disable this check. https://github.com/datawire/ambassador/issues/1313
+      // EXPECT_THAT(new_headers_from_upstream,
+      //            Not(Http::IsSubsetOfHeaders(upstream_request_->headers())));
     }
 
     if (!headers_to_append_multiple.empty()) {
