@@ -11,5 +11,6 @@ api_proto_package(
         "//envoy/extensions/common/ratelimit/v3:pkg",
         "//envoy/service/ratelimit/v2:pkg",
         "@com_github_cncf_udpa//udpa/annotations:pkg",
+        "//pb/lyft/ratelimit:pkg",
     ],
 )
