@@ -504,6 +504,8 @@ void Filter::onComplete(Filters::Common::ExtAuthz::ResponsePtr&& response) {
           // into one entry. The value of that combined entry is separated by ",".
           // TODO(dio): Consider to use addCopy instead.
           request_headers_->appendCopy(lowercase_key, value);
+        } else {
+          request_headers_->addCopy(lowercase_key, value);
         }
         break;
       }
