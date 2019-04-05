@@ -34,7 +34,7 @@ Http::FilterFactoryCb RateLimitFilterConfig::createFilterFactoryFromProtoTyped(
     callbacks.addStreamFilter(std::make_shared<Filter>(
         filter_config, Filters::Common::RateLimit::rateLimitClient(
                            context, proto_config.rate_limit_service().grpc_service(), timeout,
-                           transport_version)));
+                           transport_version, proto_config.rate_limit_service().use_alpha())));
   };
 }
 
