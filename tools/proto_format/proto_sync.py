@@ -398,9 +398,6 @@ def generate_current_api_dir(api_dir, dst_dir):
 
     for p in dst.glob('**/*.md'):
         p.unlink()
-    # envoy.service.auth.v2alpha exist for compatibility while we don't run in protoxform
-    # so we ignore it here.
-    shutil.rmtree(str(dst.joinpath("service", "auth", "v2alpha")))
 
     for proto in IGNORED_V2_PROTOS:
         shutil.rmtree(str(dst.joinpath(proto[6:])))
