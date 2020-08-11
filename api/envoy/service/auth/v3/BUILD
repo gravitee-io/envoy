@@ -12,5 +12,6 @@ api_proto_package(
         "//envoy/service/auth/v2alpha:pkg",
         "//envoy/type/v3:pkg",
         "@com_github_cncf_udpa//udpa/annotations:pkg",
+        "//envoy/service/auth/v2alpha:pkg",
     ],
 )
