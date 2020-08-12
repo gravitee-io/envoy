@@ -13,5 +13,6 @@ api_proto_package(
         "//pb/lyft/ratelimit:pkg",
         "@com_github_cncf_udpa//udpa/annotations:pkg",
         "//pb/lyft/ratelimit:pkg",
+        "@com_github_cncf_udpa//udpa/annotations:pkg",
     ],
 )
