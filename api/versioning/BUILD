@@ -295,5 +295,6 @@ proto_library(
         "//envoy/type/matcher:pkg",
         "//envoy/type/metadata/v2:pkg",
         "//envoy/type/tracing/v2:pkg",
+        "//pb/lyft/ratelimit:pkg",
     ],
 )
