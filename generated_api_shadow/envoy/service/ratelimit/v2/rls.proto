@@ -45,6 +45,7 @@ message RateLimitRequest {
 }
 
 // A response from a ShouldRateLimit call.
+// [#next-free-field: 6]
 message RateLimitResponse {
   enum Code {
     // The response code is not known.
@@ -112,4 +113,7 @@ message RateLimitResponse {
 
   // A list of headers to add to the request when forwarded
   repeated api.v2.core.HeaderValue request_headers_to_add = 4;
+
+  // A response body to send to the downstream client when the response code is not OK.
+  bytes raw_body = 5;
 }
