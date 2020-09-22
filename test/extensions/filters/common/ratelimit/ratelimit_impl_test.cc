@@ -37,15 +37,17 @@ class MockRequestCallbacks : public RequestCallbacks {
 public:
   void complete(LimitStatus status, DescriptorStatusListPtr&& descriptor_statuses,
                 Http::ResponseHeaderMapPtr&& response_headers_to_add,
-                Http::RequestHeaderMapPtr&& request_headers_to_add) override {
+                Http::RequestHeaderMapPtr&& request_headers_to_add,
+                const std::string& response_body) override {
     complete_(status, descriptor_statuses.get(), response_headers_to_add.get(),
-              request_headers_to_add.get());
+              request_headers_to_add.get(), response_body);
   }
 
   MOCK_METHOD(void, complete_,
               (LimitStatus status, const DescriptorStatusList* descriptor_statuses,
                const Http::ResponseHeaderMap* response_headers_to_add,
-               const Http::RequestHeaderMap* request_headers_to_add));
+               const Http::RequestHeaderMap* request_headers_to_add,
+               const std::string& response_body));
 };
 
 class RateLimitGrpcClientTest : public testing::Test {
