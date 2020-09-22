@@ -55,6 +55,7 @@ public:
    * @response_body The response body to use for the downstream response, for non-OK statuses. May
    * contain non UTF-8 values (e.g. binary data).
    */
+
   virtual void complete(LimitStatus status, DescriptorStatusListPtr&& descriptor_statuses,
                         Http::ResponseHeaderMapPtr&& response_headers_to_add,
                         Http::RequestHeaderMapPtr&& request_headers_to_add,
