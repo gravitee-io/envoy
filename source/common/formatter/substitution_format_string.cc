@@ -1,9 +1,13 @@
+#include "common/config/datasource.h"
 #include "common/formatter/substitution_format_string.h"
 
 #include "envoy/api/api.h"
 
 #include "common/config/datasource.h"
+
 #include "common/formatter/substitution_formatter.h"
+
+#include "envoy/api/api.h"
 
 namespace Envoy {
 namespace Formatter {

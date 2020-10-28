@@ -238,7 +238,7 @@ public:
   virtual void setResponseFlag(ResponseFlag response_flag) PURE;
 
   /**
-   * @param code the HTTP response code to set for this request.
+   * @param code the response code to set for this request.
    */
   virtual void setResponseCode(uint32_t code) PURE;
 
