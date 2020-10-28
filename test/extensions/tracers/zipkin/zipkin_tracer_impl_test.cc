@@ -87,6 +87,7 @@ public:
   void expectValidFlushSeveralSpansWithHostname(const std::string& version,
                                                 const std::string& content_type,
                                                 const std::string& hostname) {
+
     setupValidDriverWithHostname(version, hostname);
 
     Http::MockAsyncClientRequest request(&cm_.thread_local_cluster_.async_client_);
