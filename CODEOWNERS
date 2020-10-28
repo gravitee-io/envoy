@@ -121,8 +121,9 @@ extensions/filters/common/original_src @klarose @mattklein123
 /*/extensions/filters/http/grpc_json_transcoder @taoxuy @nareddyt @alyssawilk
 /*/extensions/filters/http/router @alyssawilk @mattklein123
 /*/extensions/filters/common/rbac/matchers @conqerAtapple @ggreenway @alyssawilk
-/*/extensions/filters/http/grpc_web @fengli79 @lizan @alyssawilk
-/*/extensions/filters/http/grpc_stats @kyessenov @botengyao @nezdolik
+/*/extensions/filters/http/response_map @esmet @htuch
+/*/extensions/filters/http/grpc_web @lizan @alyssawilk
+/*/extensions/filters/http/grpc_stats @botengyao @nezdolik
 /*/extensions/filters/http/connect_grpc_bridge @jchadwick-buf @mattklein123
 /*/extensions/filters/common/original_src @klarose @mattklein123
 /*/extensions/filters/listener/tls_inspector @ggreenway @KBaichoo
