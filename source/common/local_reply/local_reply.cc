@@ -11,6 +11,7 @@
 #include "source/common/formatter/substitution_format_string.h"
 #include "source/common/formatter/substitution_formatter.h"
 #include "source/common/http/header_map_impl.h"
+#include "source/common/http/utility.h"
 #include "source/common/router/header_parser.h"
 
 namespace Envoy {
