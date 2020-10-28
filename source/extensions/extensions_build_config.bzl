@@ -181,6 +181,7 @@ EXTENSIONS = {
     "envoy.filters.http.proto_message_extraction":      "//source/extensions/filters/http/proto_message_extraction:config",
     "envoy.filters.http.ratelimit":                     "//source/extensions/filters/http/ratelimit:config",
     "envoy.filters.http.rbac":                          "//source/extensions/filters/http/rbac:config",
+    "envoy.filters.http.response_map":                  "//source/extensions/filters/http/response_map:config",
     "envoy.filters.http.router":                        "//source/extensions/filters/http/router:config",
     "envoy.filters.http.set_filter_state":              "//source/extensions/filters/http/set_filter_state:config",
     "envoy.filters.http.set_metadata":                  "//source/extensions/filters/http/set_metadata:config",
