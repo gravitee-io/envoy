@@ -104,6 +104,7 @@ proto_library(
         "//envoy/extensions/filters/http/original_src/v3:pkg",
         "//envoy/extensions/filters/http/ratelimit/v3:pkg",
         "//envoy/extensions/filters/http/rbac/v3:pkg",
+        "//envoy/extensions/filters/http/response_map/v3:pkg",
         "//envoy/extensions/filters/http/router/v3:pkg",
         "//envoy/extensions/filters/http/set_metadata/v3:pkg",
         "//envoy/extensions/filters/http/tap/v3:pkg",
