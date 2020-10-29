@@ -19,6 +19,13 @@ Http::FilterFactoryCb ResponseMapFilterFactory::createFilterFactoryFromProtoType
   };
 }
 
+Router::RouteSpecificFilterConfigConstSharedPtr
+ResponseMapFilterFactory::createRouteSpecificFilterConfigTyped(
+    const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
+    Server::Configuration::ServerFactoryContext&, ProtobufMessage::ValidationVisitor&) {
+  return std::make_shared<FilterConfigPerRoute>(proto_config);
+}
+
 /**
  * Static registration for the response_map filter. @see RegisterFactory.
  */

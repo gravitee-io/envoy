@@ -28,6 +28,7 @@ envoy_cc_library(
         "//source/common/http:header_map_lib",
         "//source/common/http:headers_lib",
         "//source/common/response_map:response_map_lib",
+        "//source/extensions/filters/http:well_known_names",
     ],
 )
 
