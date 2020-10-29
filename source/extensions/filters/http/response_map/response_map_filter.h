@@ -25,6 +25,17 @@ private:
 };
 using ResponseMapFilterConfigSharedPtr = std::shared_ptr<ResponseMapFilterConfig>;
 
+class FilterConfigPerRoute : public Router::RouteSpecificFilterConfig {
+public:
+  FilterConfigPerRoute(
+      const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& config)
+      : disabled_(config.disabled()) {}
+  bool disabled() const { return disabled_; }
+
+private:
+  bool disabled_;
+};
+
 class ResponseMapFilter : public Http::StreamFilter, Logger::Loggable<Logger::Id::filter> {
 public:
   ResponseMapFilter(ResponseMapFilterConfigSharedPtr config);
@@ -70,6 +81,7 @@ private:
   Http::ResponseHeaderMap* response_headers_{};
   Http::RequestHeaderMap* request_headers_{};
   bool do_rewrite_{};
+  bool disabled_{};
 };
 
 } // namespace ResponseMapFilter
