@@ -44,11 +44,12 @@ public:
    */
   static ResponseMapPtr
   create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-         Server::Configuration::FactoryContext& context);
+         Server::Configuration::CommonFactoryContext& context,
+         ProtobufMessage::ValidationVisitor& validationVisitor);
 
   /**
    * Create a default ResponseMap object with empty config.
-   * It is used at places without Server::Configuration::FactoryContext.
+   * It is used at places without Server::Configuration::CommonFactoryContext.
    */
   static ResponseMapPtr createDefault();
 };
