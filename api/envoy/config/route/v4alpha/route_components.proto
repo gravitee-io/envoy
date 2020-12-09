@@ -1346,12 +1346,17 @@ message RedirectAction {
     string prefix_rewrite = 5
         [(validate.rules).string = {well_known_regex: HTTP_HEADER_VALUE strict: false}];
 
-    // Indicates that during redirect, portions of the path that match the
+    // Indicates that during forwarding, portions of the path that match the
     // pattern should be rewritten, even allowing the substitution of capture
     // groups from the pattern into the new path as specified by the rewrite
     // substitution string. This is useful to allow application paths to be
     // rewritten in a way that is aware of segments with variable content like
-    // identifiers.
+    // identifiers. The router filter will place the original path as it was
+    // before the rewrite into the :ref:`x-envoy-original-path
+    // <config_http_filters_router_x-envoy-original-path>` header.
+    //
+    // Only one of :ref:`prefix_rewrite <envoy_api_field_config.route.v4alpha.RouteAction.prefix_rewrite>`
+    // or *regex_rewrite* may be specified.
     //
     // Examples using Google's `RE2 <https://github.com/google/re2>`_ engine:
     //
