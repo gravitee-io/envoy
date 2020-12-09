@@ -450,7 +450,7 @@ public:
     if (!isDirectResponse()) {
       return false;
     }
-    return !host_redirect_.empty() || !path_redirect_.empty() || !prefix_rewrite_redirect_.empty() || regex_rewrite_redirect_;
+    return !host_redirect_.empty() || !path_redirect_.empty() || !prefix_rewrite_redirect_.empty() || regex_rewrite_redirect_ != nullptr;
   }
 
   bool matchRoute(const Http::RequestHeaderMap& headers, const StreamInfo::StreamInfo& stream_info,
