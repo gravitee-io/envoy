@@ -450,7 +450,8 @@ public:
     if (!isDirectResponse()) {
       return false;
     }
-    return !host_redirect_.empty() || !path_redirect_.empty() || !prefix_rewrite_redirect_.empty() || regex_rewrite_redirect_ != nullptr;
+    return !host_redirect_.empty() || !path_redirect_.empty() ||
+           !prefix_rewrite_redirect_.empty() || regex_rewrite_redirect_ != nullptr;
   }
 
   bool matchRoute(const Http::RequestHeaderMap& headers, const StreamInfo::StreamInfo& stream_info,
@@ -550,7 +551,8 @@ protected:
    * to store memory that backs the returned path, and so the lifetime of the container must
    * outlife any use of the returned path.
    */
-  const std::string& getPathRewrite(const Http::RequestHeaderMap& headers, absl::optional<std::string> &container) const;
+  const std::string& getPathRewrite(const Http::RequestHeaderMap& headers,
+                                    absl::optional<std::string>& container) const;
 
   void finalizePathHeader(Http::RequestHeaderMap& headers, absl::string_view matched_path,
                           bool insert_envoy_original_path) const;

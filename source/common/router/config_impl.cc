@@ -575,27 +575,28 @@ RouteEntryImplBase::loadRuntimeData(const envoy::config::route::v3::RouteMatch& 
   return runtime;
 }
 
-const std::string& RouteEntryImplBase::getPathRewrite(const Http::RequestHeaderMap& headers, absl::optional<std::string> &container) const {
-    // Just use the prefix rewrite  if this isn't a redirect.
-    if (!isRedirect()) {
-      return prefix_rewrite_;
-    }
+const std::string&
+RouteEntryImplBase::getPathRewrite(const Http::RequestHeaderMap& headers,
+                                   absl::optional<std::string>& container) const {
+  // Just use the prefix rewrite  if this isn't a redirect.
+  if (!isRedirect()) {
+    return prefix_rewrite_;
+  }
 
-    // Return the regex rewrite substitution for redirects, if set.
-    if (regex_rewrite_redirect_ != nullptr) {
-      std::string path(headers.getPathValue());
+  // Return the regex rewrite substitution for redirects, if set.
+  if (regex_rewrite_redirect_ != nullptr) {
+    // Copy just the path and rewrite it using the regex.
+    //
+    // Store the result in the output container, and return a reference to the underlying string.
+    auto just_path(Http::PathUtil::removeQueryAndFragment(headers.getPathValue()));
+    container =
+        regex_rewrite_redirect_->replaceAll(just_path, regex_rewrite_redirect_substitution_);
 
-      // Replace the entire path, but preserve the query parameters
-      auto just_path(Http::PathUtil::removeQueryAndFragment(path));
+    return container.value();
+  }
 
-      // Store the result in the output container, and return a reference to the underlying string.
-      container = std::move(path.replace(0, just_path.size(),
-          regex_rewrite_redirect_->replaceAll(just_path, regex_rewrite_redirect_substitution_)));
-      return container.value();
-    }
-
-    // Otherwise, return the prefix rewrite used for redirects.
-    return prefix_rewrite_redirect_;
+  // Otherwise, return the prefix rewrite used for redirects.
+  return prefix_rewrite_redirect_;
 }
 
 // finalizePathHeaders does the "standard" path rewriting, meaning that it
