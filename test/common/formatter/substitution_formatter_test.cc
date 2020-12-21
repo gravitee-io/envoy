@@ -1493,6 +1493,7 @@ TEST(SubstitutionFormatterTest, DownstreamPeerCertVEndFormatter) {
   {
     DownstreamPeerCertVEndFormatter cert_end_format(
         "DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)");
+
     auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
     time_t test_epoch = 1522280158;
     SystemTime time = std::chrono::system_clock::from_time_t(test_epoch);
