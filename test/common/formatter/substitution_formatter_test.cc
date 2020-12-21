@@ -973,71 +973,6 @@ TEST(SubstitutionFormatterTest, streamInfoFormatter) {
                 ProtoEq(ValueUtil::nullValue()));
   }
   {
-    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_START");
-    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
-    absl::Time abslStartTime =
-        TestUtility::parseTime("Dec 18 01:50:34 2018 GMT", "%b %e %H:%M:%S %Y GMT");
-    SystemTime startTime = absl::ToChronoTime(abslStartTime);
-    EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(startTime));
-    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
-    EXPECT_EQ("2018-12-18T01:50:34.000Z",
-              upstream_format.format(request_headers, response_headers, response_trailers,
-                                     stream_info, body));
-  }
-  {
-    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_START");
-    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
-    EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(absl::nullopt));
-    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
-    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
-                                                    response_trailers, stream_info, body));
-    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
-                                            stream_info, body),
-                ProtoEq(ValueUtil::nullValue()));
-  }
-  {
-    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(nullptr));
-    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_START");
-    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
-                                                    response_trailers, stream_info, body));
-    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
-                                            stream_info, body),
-                ProtoEq(ValueUtil::nullValue()));
-  }
-  {
-    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_END");
-    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
-    absl::Time abslEndTime =
-        TestUtility::parseTime("Dec 17 01:50:34 2020 GMT", "%b %e %H:%M:%S %Y GMT");
-    SystemTime endTime = absl::ToChronoTime(abslEndTime);
-    EXPECT_CALL(*connection_info, expirationPeerCertificate()).WillRepeatedly(Return(endTime));
-    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
-    EXPECT_EQ("2020-12-17T01:50:34.000Z",
-              upstream_format.format(request_headers, response_headers, response_trailers,
-                                     stream_info, body));
-  }
-  {
-    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_END");
-    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
-    EXPECT_CALL(*connection_info, expirationPeerCertificate())
-        .WillRepeatedly(Return(absl::nullopt));
-    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
-    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
-                                                    response_trailers, stream_info, body));
-    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
-                                            stream_info, body),
-                ProtoEq(ValueUtil::nullValue()));
-  }
-  {
-    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(nullptr));
-    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_END");
-    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
-                                                    response_trailers, stream_info, body));
-    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
-                                            stream_info, body),
-                ProtoEq(ValueUtil::nullValue()));
-  }
-  {
     StreamInfoFormatter upstream_format("UPSTREAM_TRANSPORT_FAILURE_REASON");
     std::string upstream_transport_failure_reason = "SSL error";
     EXPECT_CALL(stream_info, upstreamTransportFailureReason())
@@ -1452,6 +1387,81 @@ TEST(SubstitutionFormatterTest, FilterStateFormatter) {
                                               stream_info, body));
     EXPECT_THAT(formatter.formatValue(request_headers, response_headers, response_trailers,
                                       stream_info, body),
+                ProtoEq(ValueUtil::nullValue()));
+  }
+}
+
+TEST(SubstitutionFormatterTest, DownstreamPeerCertVStartFormatter) {
+  TODO;
+
+  {
+    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_START");
+    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
+    absl::Time abslStartTime =
+        TestUtility::parseTime("Dec 18 01:50:34 2018 GMT", "%b %e %H:%M:%S %Y GMT");
+    SystemTime startTime = absl::ToChronoTime(abslStartTime);
+    EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(startTime));
+    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
+    EXPECT_EQ("2018-12-18T01:50:34.000Z",
+              upstream_format.format(request_headers, response_headers, response_trailers,
+                                     stream_info, body));
+  }
+  {
+    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_START");
+    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
+    EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(absl::nullopt));
+    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
+    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
+                                                    response_trailers, stream_info, body));
+    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
+                                            stream_info, body),
+                ProtoEq(ValueUtil::nullValue()));
+  }
+  {
+    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(nullptr));
+    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_START");
+    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
+                                                    response_trailers, stream_info, body));
+    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
+                                            stream_info, body),
+                ProtoEq(ValueUtil::nullValue()));
+  }
+}
+
+TEST(SubstitutionFormatterTest, DownstreamPeerCertVEndFormatter) {
+  TODO;
+
+  {
+    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_END");
+    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
+    absl::Time abslEndTime =
+        TestUtility::parseTime("Dec 17 01:50:34 2020 GMT", "%b %e %H:%M:%S %Y GMT");
+    SystemTime endTime = absl::ToChronoTime(abslEndTime);
+    EXPECT_CALL(*connection_info, expirationPeerCertificate()).WillRepeatedly(Return(endTime));
+    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
+    EXPECT_EQ("2020-12-17T01:50:34.000Z",
+              upstream_format.format(request_headers, response_headers, response_trailers,
+                                     stream_info, body));
+  }
+  {
+    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_END");
+    auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
+    EXPECT_CALL(*connection_info, expirationPeerCertificate())
+        .WillRepeatedly(Return(absl::nullopt));
+    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
+    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
+                                                    response_trailers, stream_info, body));
+    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
+                                            stream_info, body),
+                ProtoEq(ValueUtil::nullValue()));
+  }
+  {
+    EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(nullptr));
+    StreamInfoFormatter upstream_format("DOWNSTREAM_PEER_CERT_V_END");
+    EXPECT_EQ(absl::nullopt, upstream_format.format(request_headers, response_headers,
+                                                    response_trailers,  stream_info, body));
+    EXPECT_THAT(upstream_format.formatValue(request_headers, response_headers, response_trailers,
+                                            stream_info, body),
                 ProtoEq(ValueUtil::nullValue()));
   }
 }
