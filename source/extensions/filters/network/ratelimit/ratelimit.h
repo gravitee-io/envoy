@@ -94,7 +94,8 @@ public:
   void complete(Filters::Common::RateLimit::LimitStatus status,
                 Http::ResponseHeaderMapPtr&& response_headers_to_add,
                 Http::RequestHeaderMapPtr&& request_headers_to_add,
-                const std::string &response_body) override;
+                const std::string& response_body,
+                Filters::Common::RateLimit::DynamicMetadataPtr&& dynamic_metadata) override;
 
 private:
   enum class Status { NotStarted, Calling, Complete };

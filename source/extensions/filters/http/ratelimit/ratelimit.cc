@@ -12,6 +12,8 @@
 #include "common/http/header_utility.h"
 #include "common/router/config_impl.h"
 
+#include "extensions/filters/http/well_known_names.h"
+
 namespace Envoy {
 namespace Extensions {
 namespace HttpFilters {
@@ -99,7 +101,7 @@ Http::FilterHeadersStatus Filter::encode100ContinueHeaders(Http::ResponseHeaderM
 }
 
 Http::FilterHeadersStatus Filter::encodeHeaders(Http::ResponseHeaderMap& headers, bool) {
-  populateResponseHeaders(headers, false);
+  populateResponseHeaders(headers, /*from_local_reply=*/false);
   return Http::FilterHeadersStatus::Continue;
 }
 
@@ -127,12 +129,18 @@ void Filter::onDestroy() {
 void Filter::complete(Filters::Common::RateLimit::LimitStatus status,
                       Http::ResponseHeaderMapPtr&& response_headers_to_add,
                       Http::RequestHeaderMapPtr&& request_headers_to_add,
-                      const std::string &response_body) {
+                      const std::string& response_body,
+                      Filters::Common::RateLimit::DynamicMetadataPtr&& dynamic_metadata) {
   state_ = State::Complete;
   response_headers_to_add_ = std::move(response_headers_to_add);
   Http::HeaderMapPtr req_headers_to_add = std::move(request_headers_to_add);
   Stats::StatName empty_stat_name;
   Filters::Common::RateLimit::StatNames& stat_names = config_->statNames();
+
+  if (dynamic_metadata != nullptr && !dynamic_metadata->fields().empty()) {
+    callbacks_->streamInfo().setDynamicMetadata(HttpFilterNames::get().RateLimit,
+                                                *dynamic_metadata);
+  }
 
   switch (status) {
   case Filters::Common::RateLimit::LimitStatus::OK:
@@ -165,15 +173,10 @@ void Filter::complete(Filters::Common::RateLimit::LimitStatus status,
   if (status == Filters::Common::RateLimit::LimitStatus::OverLimit &&
       config_->runtime().snapshot().featureEnabled("ratelimit.http_filter_enforcing", 100)) {
     state_ = State::Responded;
-    // Always overwrite the content-type automatically set by sendLocalReply whenever
-    // we're sending back a response body here. We do this because any content-type
-    // coming from the ratelimit service should be treated as authoritative, and we
-    // must discard the default text/plain type set by default.
-    const bool overwrite_content_type = response_body.length() > 0;
     callbacks_->sendLocalReply(
         Http::Code::TooManyRequests, response_body,
-        [this, overwrite_content_type](Http::HeaderMap& headers) {
-          populateResponseHeaders(headers, overwrite_content_type);
+        [this](Http::HeaderMap& headers) {
+          populateResponseHeaders(headers, /*from_local_reply=*/true);
         },
         config_->rateLimitedGrpcStatus(), RcDetails::get().RateLimited);
     callbacks_->streamInfo().setResponseFlag(StreamInfo::ResponseFlag::RateLimited);
@@ -214,19 +217,16 @@ void Filter::populateRateLimitDescriptors(const Router::RateLimitPolicy& rate_li
   }
 }
 
-void Filter::populateResponseHeaders(Http::HeaderMap& response_headers,
-                                     bool overwrite_content_type) {
+void Filter::populateResponseHeaders(Http::HeaderMap& response_headers, bool from_local_reply) {
   if (response_headers_to_add_) {
-    // If the ratelimit service is sending back the content-type header and the caller
-    // wants to overwrite the existing content-type, do so here.
+    // If the ratelimit service is sending back the content-type header and we're
+    // populating response headers for a local reply, overwrite the existing
+    // content-type header.
     //
-    // We need to do this when using sendLocalReply because it sets the content-type header to
-    // text/plain whenever the response body is non-empty. This won't be correct for response
-    // bodies that actually have a different content-type, as expressed by the response headers
-    // coming from the ratelimit service. We fix it here to minimize impact surface for other
-    // callers of sendLocalReply that depend on the existing behavior.
-    if (overwrite_content_type &&
-        (*response_headers_to_add_).get(Http::Headers::get().ContentType) != nullptr) {
+    // We do this because sendLocalReply initially sets content-type to text/plain
+    // whenever the response body is non-empty, but we want the content-type coming
+    // from the ratelimit service to be authoritative in this case.
+    if (from_local_reply && !response_headers_to_add_->getContentTypeValue().empty()) {
       response_headers.remove(Http::Headers::get().ContentType);
     }
     Http::HeaderUtility::addHeaders(response_headers, *response_headers_to_add_);

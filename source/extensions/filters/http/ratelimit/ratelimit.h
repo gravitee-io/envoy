@@ -119,7 +119,8 @@ public:
   void complete(Filters::Common::RateLimit::LimitStatus status,
                 Http::ResponseHeaderMapPtr&& response_headers_to_add,
                 Http::RequestHeaderMapPtr&& request_headers_to_add,
-                const std::string &response_body) override;
+                const std::string& response_body,
+                Filters::Common::RateLimit::DynamicMetadataPtr&& dynamic_metadata) override;
 
 private:
   void initiateCall(const Http::RequestHeaderMap& headers);
@@ -127,7 +128,7 @@ private:
                                     std::vector<Envoy::RateLimit::Descriptor>& descriptors,
                                     const Router::RouteEntry* route_entry,
                                     const Http::HeaderMap& headers) const;
-  void populateResponseHeaders(Http::HeaderMap& response_headers, bool overwrite_content_type);
+  void populateResponseHeaders(Http::HeaderMap& response_headers, bool from_local_reply);
   void appendRequestHeaders(Http::HeaderMapPtr& request_headers_to_add);
 
   Http::Context& httpContext() { return config_->httpContext(); }
