@@ -36,13 +36,15 @@ namespace {
 class MockRequestCallbacks : public RequestCallbacks {
 public:
   void complete(LimitStatus status, Http::ResponseHeaderMapPtr&& response_headers_to_add,
-                Http::RequestHeaderMapPtr&& request_headers_to_add) override {
-    complete_(status, response_headers_to_add.get(), request_headers_to_add.get());
+                Http::RequestHeaderMapPtr&& request_headers_to_add, const std::string& body,
+                Filters::Common::RateLimit::DynamicMetadataPtr&& dynamic_metadata) override {
+    complete_(status, response_headers_to_add.get(), request_headers_to_add.get(), body, dynamic_metadata.get());
   }
 
   MOCK_METHOD(void, complete_,
               (LimitStatus status, const Http::ResponseHeaderMap* response_headers_to_add,
-               const Http::RequestHeaderMap* request_headers_to_add));
+               const Http::RequestHeaderMap* request_headers_to_add, const std::string& body,
+               const ProtobufWkt::Struct* dynamic_metadata));
 };
 
 class RateLimitGrpcClientTest : public testing::Test {
@@ -85,7 +87,7 @@ TEST_F(RateLimitGrpcClientTest, Basic) {
     response = std::make_unique<envoy::service::ratelimit::v3::RateLimitResponse>();
     response->set_overall_code(envoy::service::ratelimit::v3::RateLimitResponse::OVER_LIMIT);
     EXPECT_CALL(span_, setTag(Eq("ratelimit_status"), Eq("over_limit")));
-    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::OverLimit, _, _));
+    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::OverLimit, _, _, _, _));
     client_.onSuccess(std::move(response), span_);
   }
 
@@ -104,7 +106,7 @@ TEST_F(RateLimitGrpcClientTest, Basic) {
     response = std::make_unique<envoy::service::ratelimit::v3::RateLimitResponse>();
     response->set_overall_code(envoy::service::ratelimit::v3::RateLimitResponse::OK);
     EXPECT_CALL(span_, setTag(Eq("ratelimit_status"), Eq("ok")));
-    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::OK, _, _));
+    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::OK, _, _, _, _));
     client_.onSuccess(std::move(response), span_);
   }
 
@@ -121,7 +123,7 @@ TEST_F(RateLimitGrpcClientTest, Basic) {
                   Tracing::NullSpan::instance());
 
     response = std::make_unique<envoy::service::ratelimit::v3::RateLimitResponse>();
-    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::Error, _, _));
+    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::Error, _, _, _, _));
     client_.onFailure(Grpc::Status::Unknown, "", span_);
   }
 
@@ -144,7 +146,7 @@ TEST_F(RateLimitGrpcClientTest, Basic) {
     response = std::make_unique<envoy::service::ratelimit::v3::RateLimitResponse>();
     response->set_overall_code(envoy::service::ratelimit::v3::RateLimitResponse::OK);
     EXPECT_CALL(span_, setTag(Eq("ratelimit_status"), Eq("ok")));
-    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::OK, _, _));
+    EXPECT_CALL(request_callbacks_, complete_(LimitStatus::OK, _, _, _, _));
     client_.onSuccess(std::move(response), span_);
   }
 }
