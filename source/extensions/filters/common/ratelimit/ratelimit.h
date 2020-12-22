@@ -30,6 +30,8 @@ enum class LimitStatus {
   OverLimit
 };
 
+using DynamicMetadataPtr = std::unique_ptr<ProtobufWkt::Struct>;
+
 /**
  * Async callbacks used during limit() calls.
  */
@@ -43,7 +45,8 @@ public:
    */
   virtual void complete(LimitStatus status, Http::ResponseHeaderMapPtr&& response_headers_to_add,
                         Http::RequestHeaderMapPtr&& request_headers_to_add,
-                        const std::string& response_body) PURE;
+                        const std::string& response_body,
+                        DynamicMetadataPtr&& dynamic_metadata) PURE;
 };
 
 /**

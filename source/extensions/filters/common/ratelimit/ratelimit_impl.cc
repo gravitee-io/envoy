@@ -103,15 +103,23 @@ void GrpcClientImpl::onSuccess(
       request_headers_to_add->addCopy(Http::LowerCaseString(h.key()), h.value());
     }
   }
+
+  // TODO(esmet): This dynamic metadata copy is probably unnecessary, but let's just following the
+  // existing pattern of copying parameters over as unique pointers for now.
+  DynamicMetadataPtr dynamic_metadata =
+      response->has_dynamic_metadata()
+          ? std::make_unique<ProtobufWkt::Struct>(response->dynamic_metadata())
+          : nullptr;
   callbacks_->complete(status, std::move(response_headers_to_add),
-                       std::move(request_headers_to_add), response->body());
+                       std::move(request_headers_to_add), response->raw_body(),
+                       std::move(dynamic_metadata));
   callbacks_ = nullptr;
 }
 
 void GrpcClientImpl::onFailure(Grpc::Status::GrpcStatus status, const std::string&,
                                Tracing::Span&) {
   ASSERT(status != Grpc::Status::WellKnownGrpcStatus::Ok);
-  callbacks_->complete(LimitStatus::Error, nullptr, nullptr, "");
+  callbacks_->complete(LimitStatus::Error, nullptr, nullptr, EMPTY_STRING, nullptr);
   callbacks_ = nullptr;
 }
 

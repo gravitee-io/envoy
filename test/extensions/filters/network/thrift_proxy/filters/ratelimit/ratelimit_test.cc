@@ -226,7 +226,8 @@ TEST_F(ThriftRateLimitFilterTest, OkResponse) {
   EXPECT_CALL(filter_callbacks_.stream_info_,
               setResponseFlag(StreamInfo::ResponseFlag::RateLimited))
       .Times(0);
-  request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::OK, nullptr, nullptr, "");
+  request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::OK, nullptr, nullptr, "",
+                               nullptr);
 
   EXPECT_EQ(1U,
             cm_.thread_local_cluster_.cluster_.info_->stats_store_.counter("ratelimit.ok").value());
@@ -245,7 +246,8 @@ TEST_F(ThriftRateLimitFilterTest, ImmediateOkResponse) {
                               _))
       .WillOnce(
           WithArgs<0>(Invoke([&](Filters::Common::RateLimit::RequestCallbacks& callbacks) -> void {
-            callbacks.complete(Filters::Common::RateLimit::LimitStatus::OK, nullptr, nullptr, "");
+            callbacks.complete(Filters::Common::RateLimit::LimitStatus::OK, nullptr, nullptr, "",
+                               nullptr);
           })));
 
   EXPECT_CALL(filter_callbacks_, continueDecoding()).Times(0);
@@ -268,8 +270,8 @@ TEST_F(ThriftRateLimitFilterTest, ImmediateErrorResponse) {
                               _))
       .WillOnce(
           WithArgs<0>(Invoke([&](Filters::Common::RateLimit::RequestCallbacks& callbacks) -> void {
-            callbacks.complete(Filters::Common::RateLimit::LimitStatus::Error, nullptr, nullptr,
-                               "");
+            callbacks.complete(Filters::Common::RateLimit::LimitStatus::Error, nullptr, nullptr, "",
+                               nullptr);
           })));
 
   EXPECT_CALL(filter_callbacks_, continueDecoding()).Times(0);
@@ -298,8 +300,8 @@ TEST_F(ThriftRateLimitFilterTest, ErrorResponse) {
   EXPECT_EQ(ThriftProxy::FilterStatus::StopIteration, filter_->messageBegin(request_metadata_));
 
   EXPECT_CALL(filter_callbacks_, continueDecoding());
-  request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::Error, nullptr, nullptr,
-                               "");
+  request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::Error, nullptr, nullptr, "",
+                               nullptr);
 
   EXPECT_EQ(ThriftProxy::FilterStatus::Continue, filter_->messageEnd());
   EXPECT_CALL(filter_callbacks_.stream_info_,
@@ -336,8 +338,8 @@ TEST_F(ThriftRateLimitFilterTest, ErrorResponseWithFailureModeAllowOff) {
       }));
   EXPECT_CALL(filter_callbacks_.stream_info_,
               setResponseFlag(StreamInfo::ResponseFlag::RateLimitServiceError));
-  request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::Error, nullptr, nullptr,
-                               "");
+  request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::Error, nullptr, nullptr, "",
+                               nullptr);
 
   EXPECT_EQ(
       1U,
@@ -371,7 +373,7 @@ TEST_F(ThriftRateLimitFilterTest, LimitResponse) {
   EXPECT_CALL(filter_callbacks_.stream_info_,
               setResponseFlag(StreamInfo::ResponseFlag::RateLimited));
   request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::OverLimit, nullptr, nullptr,
-                               "");
+                               "", nullptr);
 
   EXPECT_EQ(1U,
             cm_.thread_local_cluster_.cluster_.info_->stats_store_.counter("ratelimit.over_limit")
@@ -404,7 +406,7 @@ TEST_F(ThriftRateLimitFilterTest, LimitResponseWithHeaders) {
 
   Http::ResponseHeaderMapPtr h{new Http::TestResponseHeaderMapImpl(*rl_headers)};
   request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::OverLimit, std::move(h),
-                               nullptr, "");
+                               nullptr, "", nullptr);
 
   EXPECT_EQ(1U,
             cm_.thread_local_cluster_.cluster_.info_->stats_store_.counter("ratelimit.over_limit")
@@ -429,7 +431,7 @@ TEST_F(ThriftRateLimitFilterTest, LimitResponseRuntimeDisabled) {
       .WillOnce(Return(false));
   EXPECT_CALL(filter_callbacks_, continueDecoding());
   request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::OverLimit, nullptr, nullptr,
-                               "");
+                               "", nullptr);
 
   EXPECT_EQ(1U,
             cm_.thread_local_cluster_.cluster_.info_->stats_store_.counter("ratelimit.over_limit")
