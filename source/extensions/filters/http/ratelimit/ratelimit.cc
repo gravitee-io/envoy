@@ -201,11 +201,6 @@ void Filter::complete(Filters::Common::RateLimit::LimitStatus status,
   if (status == Filters::Common::RateLimit::LimitStatus::OverLimit &&
       config_->runtime().snapshot().featureEnabled("ratelimit.http_filter_enforcing", 100)) {
     state_ = State::Responded;
-    // Always overwrite the content-type automatically set by sendLocalReply whenever
-    // we're sending back a response body here. We do this because any content-type
-    // coming from the ratelimit service should be treated as authoritative, and we
-    // must discard the default text/plain type set by default.
-    const bool overwrite_content_type = response_body.length() > 0;
     callbacks_->sendLocalReply(
         Http::Code::TooManyRequests, response_body,
         [this](Http::HeaderMap& headers) {
