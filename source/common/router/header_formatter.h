@@ -47,6 +47,10 @@ private:
   const bool append_;
   std::unordered_map<std::string, std::vector<Envoy::Formatter::FormatterProviderPtr>>
       start_time_formatters_;
+  std::unordered_map<std::string, std::vector<Envoy::Formatter::FormatterProviderPtr>>
+      downstream_peer_cert_v_start_formatters_;
+  std::unordered_map<std::string, std::vector<Envoy::Formatter::FormatterProviderPtr>>
+      downstream_peer_cert_v_end_formatters_;
 };
 
 /**
