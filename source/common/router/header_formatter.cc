@@ -202,6 +202,7 @@ StreamInfoHeaderFormatter::FieldExtractor sslConnectionInfoStringHeaderExtractor
 }
 
 // Helper that handles the case when the desired time field is empty.
+/*
 StreamInfoHeaderFormatter::FieldExtractor sslConnectionInfoStringTimeHeaderExtractor(
     std::function<absl::optional<SystemTime>(const Ssl::ConnectionInfo& connection_info)>
         time_extractor) {
@@ -215,6 +216,7 @@ StreamInfoHeaderFormatter::FieldExtractor sslConnectionInfoStringTimeHeaderExtra
         return AccessLogDateTimeFormatter::fromTime(time.value());
       });
 }
+*/
 
 } // namespace
 
@@ -298,16 +300,52 @@ StreamInfoHeaderFormatter::StreamInfoHeaderFormatter(absl::string_view field_nam
         sslConnectionInfoStringHeaderExtractor([](const Ssl::ConnectionInfo& connection_info) {
           return connection_info.urlEncodedPemEncodedPeerCertificate();
         });
-  } else if (field_name == "DOWNSTREAM_PEER_CERT_V_START") {
-    field_extractor_ =
-        sslConnectionInfoStringTimeHeaderExtractor([](const Ssl::ConnectionInfo& connection_info) {
-          return connection_info.validFromPeerCertificate();
-        });
-  } else if (field_name == "DOWNSTREAM_PEER_CERT_V_END") {
-    field_extractor_ =
-        sslConnectionInfoStringTimeHeaderExtractor([](const Ssl::ConnectionInfo& connection_info) {
-          return connection_info.expirationPeerCertificate();
-        });
+  } else if (absl::StartsWith(field_name, "DOWNSTREAM_PEER_CERT_V_START")) {
+    const std::string pattern = fmt::format("%{}%", field_name);
+    if (downstream_peer_cert_v_start_formatters_.find(pattern) ==
+        downstream_peer_cert_v_start_formatters_.end()) {
+      downstream_peer_cert_v_start_formatters_.emplace(
+          std::make_pair(pattern, Formatter::SubstitutionFormatParser::parse(pattern)));
+    }
+    field_extractor_ = [this, pattern](const Envoy::StreamInfo::StreamInfo& stream_info) {
+      if (stream_info.downstreamSslConnection() == nullptr ||
+          !stream_info.downstreamSslConnection()->validFromPeerCertificate().has_value()) {
+        return std::string("");
+      }
+      const auto& formatters = downstream_peer_cert_v_start_formatters_.at(pattern);
+      std::string formatted;
+      for (const auto& formatter : formatters) {
+        absl::StrAppend(&formatted,
+                        formatter->format(*Http::StaticEmptyHeaders::get().request_headers,
+                                          *Http::StaticEmptyHeaders::get().response_headers,
+                                          *Http::StaticEmptyHeaders::get().response_trailers,
+                                          stream_info, absl::string_view()));
+      }
+      return formatted;
+    };
+  } else if (absl::StartsWith(field_name, "DOWNSTREAM_PEER_CERT_V_END")) {
+    const std::string pattern = fmt::format("%{}%", field_name);
+    if (downstream_peer_cert_v_end_formatters_.find(pattern) ==
+        downstream_peer_cert_v_end_formatters_.end()) {
+      downstream_peer_cert_v_end_formatters_.emplace(
+          std::make_pair(pattern, Formatter::SubstitutionFormatParser::parse(pattern)));
+    }
+    field_extractor_ = [this, pattern](const Envoy::StreamInfo::StreamInfo& stream_info) {
+      if (stream_info.downstreamSslConnection() == nullptr ||
+          !stream_info.downstreamSslConnection()->expirationPeerCertificate().has_value()) {
+        return std::string("");
+      }
+      const auto& formatters = downstream_peer_cert_v_end_formatters_.at(pattern);
+      std::string formatted;
+      for (const auto& formatter : formatters) {
+        absl::StrAppend(&formatted,
+                        formatter->format(*Http::StaticEmptyHeaders::get().request_headers,
+                                          *Http::StaticEmptyHeaders::get().response_headers,
+                                          *Http::StaticEmptyHeaders::get().response_trailers,
+                                          stream_info, absl::string_view()));
+      }
+      return formatted;
+    };
   } else if (field_name == "UPSTREAM_REMOTE_ADDRESS") {
     field_extractor_ = [](const Envoy::StreamInfo::StreamInfo& stream_info) -> std::string {
       if (stream_info.upstreamHost()) {
