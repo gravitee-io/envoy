@@ -36,6 +36,13 @@ MockIdleTimeEnabledClusterInfo::MockIdleTimeEnabledClusterInfo() {
 
 MockIdleTimeEnabledClusterInfo::~MockIdleTimeEnabledClusterInfo() = default;
 
+MockMaxConnectionDurationEnabledClusterInfo::MockMaxConnectionDurationEnabledClusterInfo() {
+  ON_CALL(*this, maxConnectionDuration()).WillByDefault(Return(std::chrono::milliseconds(1000)));
+}
+
+MockMaxConnectionDurationEnabledClusterInfo::~MockMaxConnectionDurationEnabledClusterInfo() =
+    default;
+
 MockClusterInfo::MockClusterInfo()
     : http2_options_(::Envoy::Http2::Utility::initializeAndValidateOptions(
           envoy::config::core::v3::Http2ProtocolOptions())),
@@ -62,6 +69,8 @@ MockClusterInfo::MockClusterInfo()
           circuit_breakers_stats_, absl::nullopt, absl::nullopt)) {
   ON_CALL(*this, connectTimeout()).WillByDefault(Return(std::chrono::milliseconds(1)));
   ON_CALL(*this, idleTimeout()).WillByDefault(Return(absl::optional<std::chrono::milliseconds>()));
+  ON_CALL(*this, maxConnectionDuration())
+      .WillByDefault(Return(absl::optional<std::chrono::milliseconds>()));
   ON_CALL(*this, perUpstreamPreconnectRatio()).WillByDefault(Return(1.0));
   ON_CALL(*this, name()).WillByDefault(ReturnRef(name_));
   ON_CALL(*this, observabilityName()).WillByDefault(ReturnRef(observability_name_));
