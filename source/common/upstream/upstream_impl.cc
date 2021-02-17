@@ -893,9 +893,9 @@ ClusterInfoImpl::ClusterInfoImpl(
     idle_timeout_ = std::chrono::hours(1);
   }
 
-  if (http_protocol_options_->common_http_protocol_options_.has_max_connection_duration()) {
+  if (config.common_http_protocol_options().has_max_connection_duration()) {
     max_connection_duration_ = std::chrono::milliseconds(DurationUtil::durationToMilliseconds(
-        http_protocol_options_->common_http_protocol_options_.max_connection_duration()));
+        config.common_http_protocol_options().max_connection_duration()));
     if (max_connection_duration_.value().count() == 0) {
       max_connection_duration_ = absl::nullopt;
     }
