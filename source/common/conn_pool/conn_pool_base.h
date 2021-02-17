@@ -47,6 +47,15 @@ public:
   // is less than the concurrent stream limit.
   uint32_t effectiveConcurrentStreamLimit() const {
     return std::min(remaining_streams_, concurrent_stream_limit_);
+
+  // Called if the maximum connection duration is reached. If set, this puts an upper
+  // bound on the lifetime of any connection.
+  void onLifetimeTimeout();
+
+  // Returns the concurrent request limit, accounting for if the total request limit
+  // is less than the concurrent request limit.
+  uint64_t effectiveConcurrentRequestLimit() const {
+    return std::min(remaining_requests_, concurrent_request_limit_);
   }
 
   // Returns the application protocol, or absl::nullopt for TCP.
@@ -81,6 +90,7 @@ public:
   Stats::TimespanPtr conn_connect_ms_;
   Stats::TimespanPtr conn_length_;
   Event::TimerPtr connect_timer_;
+  Event::TimerPtr lifetime_timer_;
   bool resources_released_{false};
   bool timed_out_{false};
 };

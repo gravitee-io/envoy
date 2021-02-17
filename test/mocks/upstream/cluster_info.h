@@ -95,6 +95,7 @@ public:
               (const));
   MOCK_METHOD(float, perUpstreamPreconnectRatio, (), (const));
   MOCK_METHOD(float, peekaheadRatio, (), (const));
+  MOCK_METHOD(const absl::optional<std::chrono::milliseconds>, maxConnectionDuration, (), (const));
   MOCK_METHOD(uint32_t, perConnectionBufferLimitBytes, (), (const));
   MOCK_METHOD(uint64_t, features, (), (const));
   MOCK_METHOD(const Http::Http1Settings&, http1Settings, (), (const));
@@ -198,6 +199,12 @@ class MockIdleTimeEnabledClusterInfo : public MockClusterInfo {
 public:
   MockIdleTimeEnabledClusterInfo();
   ~MockIdleTimeEnabledClusterInfo() override;
+};
+
+class MockMaxConnectionDurationEnabledClusterInfo : public MockClusterInfo {
+public:
+  MockMaxConnectionDurationEnabledClusterInfo();
+  ~MockMaxConnectionDurationEnabledClusterInfo() override;
 };
 
 } // namespace Upstream
