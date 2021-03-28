@@ -60,6 +60,10 @@ public:
     return std::min<int64_t>(remaining_streams_, remaining_concurrent_streams);
   }
 
+  // Called if the maximum connection duration is reached. If set, this puts an upper
+  // bound on the lifetime of any connection.
+  void onLifetimeTimeout();
+
   // Closes the underlying connection.
   virtual void close() PURE;
   // Returns the ID of the underlying connection.
@@ -92,6 +96,7 @@ public:
   Stats::TimespanPtr conn_connect_ms_;
   Stats::TimespanPtr conn_length_;
   Event::TimerPtr connect_timer_;
+  Event::TimerPtr lifetime_timer_;
   bool resources_released_{false};
   bool timed_out_{false};
 };

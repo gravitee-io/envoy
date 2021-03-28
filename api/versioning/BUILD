@@ -89,6 +89,7 @@ proto_library(
         "//envoy/extensions/filters/http/original_src/v3:pkg",
         "//envoy/extensions/filters/http/ratelimit/v3:pkg",
         "//envoy/extensions/filters/http/rbac/v3:pkg",
+        "//envoy/extensions/filters/http/response_map/v3:pkg",
         "//envoy/extensions/filters/http/router/v3:pkg",
         "//envoy/extensions/filters/http/squash/v3:pkg",
         "//envoy/extensions/filters/http/tap/v3:pkg",
@@ -280,6 +281,7 @@ proto_library(
         "//envoy/data/tap/v2alpha:pkg",
         "//envoy/service/accesslog/v2:pkg",
         "//envoy/service/auth/v2:pkg",
+        "//envoy/service/auth/v2alpha:pkg",
         "//envoy/service/discovery/v2:pkg",
         "//envoy/service/event_reporting/v2alpha:pkg",
         "//envoy/service/load_stats/v2:pkg",
@@ -292,5 +294,6 @@ proto_library(
         "//envoy/type/matcher:pkg",
         "//envoy/type/metadata/v2:pkg",
         "//envoy/type/tracing/v2:pkg",
+        "//pb/lyft/ratelimit:pkg",
     ],
 )

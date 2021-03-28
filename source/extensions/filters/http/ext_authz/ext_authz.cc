@@ -252,6 +252,10 @@ void Filter::onComplete(Filters::Common::ExtAuthz::ResponsePtr&& response) {
         // entry. The value of that combined entry is separated by ",".
         // TODO(dio): Consider to use addCopy instead.
         request_headers_->appendCopy(header.first, header.second);
+      } else {
+        // TODO(esmet): We allow adding a header even if the input config is for `append` headers.
+        // We should upstream this patch.
+        request_headers_->addCopy(header.first, header.second);
       }
     }
 
