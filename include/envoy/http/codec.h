@@ -396,6 +396,8 @@ struct Http1Settings {
     // Performs proper casing of header keys: the first and all alpha characters following a
     // non-alphanumeric character is capitalized.
     ProperCase,
+    // Performs custom casing of header keys. Rules are defined as header_key_format_rules_.
+    Custom,
   };
 
   // How header keys should be formatted when serializing HTTP/1.1 headers.
@@ -405,6 +407,9 @@ struct Http1Settings {
   // - if true, the HTTP/1.1 connection is left open (where possible)
   // - if false, the HTTP/1.1 connection is terminated
   bool stream_error_on_invalid_http_message_{false};
+
+  // Rules to use when header_key_format_ == HeaderKeyFormat::Custom
+  std::map<std::string, std::string> header_key_format_rules_{};
 };
 
 /**

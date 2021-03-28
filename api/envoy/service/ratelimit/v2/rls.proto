@@ -5,6 +5,8 @@ package envoy.service.ratelimit.v2;
 import "envoy/api/v2/core/base.proto";
 import "envoy/api/v2/ratelimit/ratelimit.proto";
 
+import "google/protobuf/struct.proto";
+
 import "udpa/annotations/migrate.proto";
 import "udpa/annotations/status.proto";
 import "validate/validate.proto";
@@ -46,6 +48,7 @@ message RateLimitRequest {
 }
 
 // A response from a ShouldRateLimit call.
+// [#next-free-field: 7]
 message RateLimitResponse {
   enum Code {
     // The response code is not known.
@@ -113,4 +116,15 @@ message RateLimitResponse {
 
   // A list of headers to add to the request when forwarded
   repeated api.v2.core.HeaderValue request_headers_to_add = 4;
+
+  // A response body to send to the downstream client when the response code is not OK.
+  bytes raw_body = 5;
+
+  // Optional response metadata that will be emitted as dynamic metadata to be consumed by the next
+  // filter. This metadata lives in a namespace specified by the canonical name of extension filter
+  // that requires it:
+  //
+  // - :ref:`envoy.filters.http.ratelimit <config_http_filters_ratelimit_dynamic_metadata>` for HTTP filter.
+  // - :ref:`envoy.filters.network.ratelimit <config_network_filters_ratelimit_dynamic_metadata>` for network filter.
+  google.protobuf.Struct dynamic_metadata = 6;
 }
