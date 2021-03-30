@@ -66,7 +66,7 @@ def plugin(output_descriptors):
             f = response.file.add()
             f.name = file_proto.name + od.output_suffix
             # Don't run API proto plugins on things like WKT types etc.
-            if not (file_proto.package.startswith('envoy.') or file_proto.package.startswith('pb.lyft.')):
+            if not file_proto.package.startswith('envoy.'):
                 continue
             if request.HasField("parameter") and od.want_params:
                 params = dict(param.split('=') for param in request.parameter.split(','))

@@ -37,8 +37,7 @@ RateLimitFilterConfig::createFilterFactoryFromProtoTyped(
         config, Filters::Common::RateLimit::rateLimitClient(
                     context, proto_config.rate_limit_service().grpc_service(), timeout,
                     Envoy::Config::Utility::getAndCheckTransportVersion(
-                        proto_config.rate_limit_service()),
-                        proto_config.rate_limit_service().use_alpha())));
+                        proto_config.rate_limit_service()))));
   };
 }
 
