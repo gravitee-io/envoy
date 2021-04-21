@@ -229,7 +229,6 @@ TEST_F(ThriftRateLimitFilterTest, OkResponse) {
       .Times(0);
   request_callbacks_->complete(Filters::Common::RateLimit::LimitStatus::OK, nullptr, nullptr,
                                nullptr, "", nullptr);
-
   EXPECT_EQ(1U,
             cm_.thread_local_cluster_.cluster_.info_->stats_store_.counter("ratelimit.ok").value());
 }
