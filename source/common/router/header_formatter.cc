@@ -330,11 +330,11 @@ StreamInfoHeaderFormatter::StreamInfoHeaderFormatter(absl::string_view field_nam
       const auto& formatters = downstream_peer_cert_v_start_formatters_.at(pattern);
       std::string formatted;
       for (const auto& formatter : formatters) {
-        absl::StrAppend(&formatted,
-                        formatter->format(*Http::StaticEmptyHeaders::get().request_headers,
-                                          *Http::StaticEmptyHeaders::get().response_headers,
-                                          *Http::StaticEmptyHeaders::get().response_trailers,
-                                          stream_info, absl::string_view()));
+        const auto bit = formatter->format(*Http::StaticEmptyHeaders::get().request_headers,
+                                           *Http::StaticEmptyHeaders::get().response_headers,
+                                           *Http::StaticEmptyHeaders::get().response_trailers,
+                                           stream_info, absl::string_view());
+        absl::StrAppend(&formatted, bit.value_or("-"));
       }
       return formatted;
     };
@@ -353,11 +353,11 @@ StreamInfoHeaderFormatter::StreamInfoHeaderFormatter(absl::string_view field_nam
       const auto& formatters = downstream_peer_cert_v_end_formatters_.at(pattern);
       std::string formatted;
       for (const auto& formatter : formatters) {
-        absl::StrAppend(&formatted,
-                        formatter->format(*Http::StaticEmptyHeaders::get().request_headers,
-                                          *Http::StaticEmptyHeaders::get().response_headers,
-                                          *Http::StaticEmptyHeaders::get().response_trailers,
-                                          stream_info, absl::string_view()));
+        const auto bit = formatter->format(*Http::StaticEmptyHeaders::get().request_headers,
+                                           *Http::StaticEmptyHeaders::get().response_headers,
+                                           *Http::StaticEmptyHeaders::get().response_trailers,
+                                           stream_info, absl::string_view());
+        absl::StrAppend(&formatted, bit.value_or("-"));
       }
       return formatted;
     };

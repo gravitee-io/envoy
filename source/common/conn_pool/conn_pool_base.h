@@ -47,6 +47,7 @@ public:
   // is less than the concurrent stream limit.
   uint32_t effectiveConcurrentStreamLimit() const {
     return std::min(remaining_streams_, concurrent_stream_limit_);
+  }
 
   // Called if the maximum connection duration is reached. If set, this puts an upper
   // bound on the lifetime of any connection.

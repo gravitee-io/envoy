@@ -119,7 +119,7 @@ void GrpcClientImpl::onSuccess(
       response->has_dynamic_metadata()
           ? std::make_unique<ProtobufWkt::Struct>(response->dynamic_metadata())
           : nullptr;
-  callbacks_->complete(status, std::move(response_headers_to_add),
+  callbacks_->complete(status, std::move(descriptor_statuses), std::move(response_headers_to_add),
                        std::move(request_headers_to_add), response->raw_body(),
                        std::move(dynamic_metadata));
   callbacks_ = nullptr;

@@ -56,7 +56,7 @@ public:
       Server::Configuration::CommonFactoryContext& context,
       ProtobufMessage::ValidationVisitor& validationVisitor)
       : filter_(AccessLog::FilterFactory::fromProto(config.filter(), context.runtime(),
-                                                    context.random(),
+                                                    context.api().randomGenerator(),
                                                     validationVisitor)) {
     if (config.has_status_code()) {
       status_code_ = static_cast<Http::Code>(config.status_code().value());

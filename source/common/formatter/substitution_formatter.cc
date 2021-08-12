@@ -1219,14 +1219,14 @@ SystemTimeFormatter::SystemTimeFormatter(const std::string& format, TimeFieldExt
   }
 }
 
-std::string SystemTimeFormatter::format(const Http::RequestHeaderMap&,
+  absl::optional<std::string> SystemTimeFormatter::format(const Http::RequestHeaderMap&,
                                         const Http::ResponseHeaderMap&,
                                         const Http::ResponseTrailerMap&,
                                         const StreamInfo::StreamInfo& stream_info,
                                         absl::string_view) const {
   const auto time_field = (*time_field_extractor_)(stream_info);
   if (!time_field.has_value()) {
-    return UnspecifiedValueString;
+    return absl::nullopt;
   }
   if (date_formatter_.formatString().empty()) {
     return AccessLogDateTimeFormatter::fromTime(time_field.value());
