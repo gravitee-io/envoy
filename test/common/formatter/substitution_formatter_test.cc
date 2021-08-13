@@ -1722,23 +1722,22 @@ TEST(SubstitutionFormatterTest, DownstreamPeerCertVStartFormatter) {
   {
     NiceMock<StreamInfo::MockStreamInfo> stream_info;
     stream_info.downstream_connection_info_provider_->setSslConnection(nullptr);
-    DownstreamPeerCertVStartFormatter cert_start_formart("DOWNSTREAM_PEER_CERT_V_START(%Y/%m/%d)");
-    EXPECT_EQ(absl::nullopt, cert_start_formart.format(request_headers, response_headers,
+    DownstreamPeerCertVStartFormatter cert_start_format("DOWNSTREAM_PEER_CERT_V_START(%Y/%m/%d)");
+    EXPECT_EQ(absl::nullopt, cert_start_format.format(request_headers, response_headers,
                                                        response_trailers, stream_info, body));
-    EXPECT_THAT(cert_start_formart.formatValue(request_headers, response_headers, response_trailers,
+    EXPECT_THAT(cert_start_format.formatValue(request_headers, response_headers, response_trailers,
                                                stream_info, body),
                 ProtoEq(ValueUtil::nullValue()));
   }
   // No validFromPeerCertificate
   {
-    NiceMock<StreamInfo::MockStreamInfo> stream_info;
-    DownstreamPeerCertVStartFormatter cert_start_formart("DOWNSTREAM_PEER_CERT_V_START(%Y/%m/%d)");
+    DownstreamPeerCertVStartFormatter cert_start_format("DOWNSTREAM_PEER_CERT_V_START(%Y/%m/%d)");
     auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
     EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(absl::nullopt));
     stream_info.downstream_connection_info_provider_->setSslConnection(connection_info);
-    EXPECT_EQ(absl::nullopt, cert_start_formart.format(request_headers, response_headers,
+    EXPECT_EQ(absl::nullopt, cert_start_format.format(request_headers, response_headers,
                                                        response_trailers, stream_info, body));
-    EXPECT_THAT(cert_start_formart.formatValue(request_headers, response_headers, response_trailers,
+    EXPECT_THAT(cert_start_format.formatValue(request_headers, response_headers, response_trailers,
                                                stream_info, body),
                 ProtoEq(ValueUtil::nullValue()));
   }
