@@ -1,3 +1,4 @@
+
 #include "common/formatter/substitution_formatter.h"
 
 #include <climits>
@@ -1175,78 +1176,6 @@ ProtobufWkt::Value SystemTimeFormatter::formatValue(
     absl::string_view local_reply_body) const {
   return ValueUtil::optionalStringValue(
       format(request_headers, response_headers, response_trailers, stream_info, local_reply_body));
-
-// A SystemTime formatter that extracts the startTime from StreamInfo. Must be provided
-// an access log token that starts with `START_TIME`.
-StartTimeFormatter::StartTimeFormatter(const std::string& token)
-    : SystemTimeFormatter(
-          parseFormat(token, sizeof("START_TIME(") - 1),
-          std::make_unique<SystemTimeFormatter::TimeFieldExtractor>(
-              [](const StreamInfo::StreamInfo& stream_info) -> absl::optional<SystemTime> {
-                return stream_info.startTime();
-              })) {}
-
-// A SystemTime formatter that optionally extracts the start date from the downstream peer's
-// certificate. Must be provided an access log token that starts with `DOWNSTREAM_PEER_CERT_V_START`
-DownstreamPeerCertVStartFormatter::DownstreamPeerCertVStartFormatter(const std::string& token)
-    : SystemTimeFormatter(
-          parseFormat(token, sizeof("DOWNSTREAM_PEER_CERT_V_START(") - 1),
-          std::make_unique<SystemTimeFormatter::TimeFieldExtractor>(
-              [](const StreamInfo::StreamInfo& stream_info) -> absl::optional<SystemTime> {
-                const auto connection_info = stream_info.downstreamSslConnection();
-                return connection_info != nullptr ? connection_info->validFromPeerCertificate()
-                                                  : absl::optional<SystemTime>();
-              })) {}
-
-// A SystemTime formatter that optionally extracts the end date from the downstream peer's
-// certificate. Must be provided an access log token that starts with `DOWNSTREAM_PEER_CERT_V_END`
-DownstreamPeerCertVEndFormatter::DownstreamPeerCertVEndFormatter(const std::string& token)
-    : SystemTimeFormatter(
-          parseFormat(token, sizeof("DOWNSTREAM_PEER_CERT_V_END(") - 1),
-          std::make_unique<SystemTimeFormatter::TimeFieldExtractor>(
-              [](const StreamInfo::StreamInfo& stream_info) -> absl::optional<SystemTime> {
-                const auto connection_info = stream_info.downstreamSslConnection();
-                return connection_info != nullptr ? connection_info->expirationPeerCertificate()
-                                                  : absl::optional<SystemTime>();
-              })) {}
-
-SystemTimeFormatter::SystemTimeFormatter(const std::string& format, TimeFieldExtractorPtr f)
-    : date_formatter_(format), time_field_extractor_(std::move(f)) {
-  // Validate the input specifier here. The formatted string may be destined for a header, and
-  // should not contain invalid characters {NUL, LR, CF}.
-  if (std::regex_search(format, getSystemTimeFormatNewlinePattern())) {
-    throw EnvoyException("Invalid header configuration. Format string contains newline.");
-  }
-}
-
-  absl::optional<std::string> SystemTimeFormatter::format(const Http::RequestHeaderMap&,
-                                        const Http::ResponseHeaderMap&,
-                                        const Http::ResponseTrailerMap&,
-                                        const StreamInfo::StreamInfo& stream_info,
-                                        absl::string_view) const {
-  const auto time_field = (*time_field_extractor_)(stream_info);
-  if (!time_field.has_value()) {
-    return absl::nullopt;
-  }
-  if (date_formatter_.formatString().empty()) {
-    return AccessLogDateTimeFormatter::fromTime(time_field.value());
-  }
-  return date_formatter_.fromTime(time_field.value());
-}
-
-ProtobufWkt::Value SystemTimeFormatter::formatValue(const Http::RequestHeaderMap&,
-                                                    const Http::ResponseHeaderMap&,
-                                                    const Http::ResponseTrailerMap&,
-                                                    const StreamInfo::StreamInfo& stream_info,
-                                                    absl::string_view) const {
-  const auto time_field = (*time_field_extractor_)(stream_info);
-  if (!time_field.has_value()) {
-    return unspecifiedValue();
-  }
-  if (date_formatter_.formatString().empty()) {
-    return ValueUtil::stringValue(AccessLogDateTimeFormatter::fromTime(time_field.value()));
-  }
-  return ValueUtil::stringValue(date_formatter_.fromTime(time_field.value()));
 }
 
 } // namespace Formatter

@@ -53,12 +53,6 @@ public:
   // bound on the lifetime of any connection.
   void onLifetimeTimeout();
 
-  // Returns the concurrent request limit, accounting for if the total request limit
-  // is less than the concurrent request limit.
-  uint64_t effectiveConcurrentRequestLimit() const {
-    return std::min(remaining_requests_, concurrent_request_limit_);
-  }
-
   // Returns the application protocol, or absl::nullopt for TCP.
   virtual absl::optional<Http::Protocol> protocol() const PURE;
   uint32_t currentUnusedCapacity() const {
