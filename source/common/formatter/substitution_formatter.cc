@@ -1,4 +1,3 @@
-
 #include "common/formatter/substitution_formatter.h"
 
 #include <climits>

@@ -471,7 +471,8 @@ TEST_F(StreamInfoHeaderFormatterTest, TestFormatWithDownstreamPeerCertVStartCust
   SystemTime startTime = absl::ToChronoTime(abslStartTime);
   ON_CALL(*connection_info, validFromPeerCertificate()).WillByDefault(Return(startTime));
   EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
-  testFormatting(stream_info, "DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)", "Dec 18 01:50:34 2018 UTC");
+  testFormatting(stream_info, "DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)",
+                 "Dec 18 01:50:34 2018 UTC");
 }
 
 TEST_F(StreamInfoHeaderFormatterTest, TestFormatWithDownstreamPeerCertVStartEmpty) {
@@ -507,7 +508,8 @@ TEST_F(StreamInfoHeaderFormatterTest, TestFormatWithDownstreamPeerCertVEndCustom
   SystemTime startTime = absl::ToChronoTime(abslStartTime);
   ON_CALL(*connection_info, expirationPeerCertificate()).WillByDefault(Return(startTime));
   EXPECT_CALL(stream_info, downstreamSslConnection()).WillRepeatedly(Return(connection_info));
-  testFormatting(stream_info, "DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)", "Dec 17 01:50:34 2020 UTC");
+  testFormatting(stream_info, "DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)",
+                 "Dec 17 01:50:34 2020 UTC");
 }
 
 TEST_F(StreamInfoHeaderFormatterTest, TestFormatWithDownstreamPeerCertVEndEmpty) {

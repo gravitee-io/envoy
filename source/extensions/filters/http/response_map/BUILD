@@ -19,13 +19,13 @@ envoy_cc_library(
     deps = [
         "//include/envoy/http:codes_interface",
         "//include/envoy/http:filter_interface",
-        "//source/common/response_map:response_map_lib",
-        "//source/extensions/filters/http:well_known_names",
         "//source/common/buffer:buffer_lib",
         "//source/common/common:assert_lib",
         "//source/common/common:enum_to_int",
         "//source/common/http:header_map_lib",
         "//source/common/http:headers_lib",
+        "//source/common/response_map:response_map_lib",
+        "//source/extensions/filters/http:well_known_names",
     ],
 )
 

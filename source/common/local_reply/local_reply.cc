@@ -11,9 +11,8 @@
 #include "common/formatter/substitution_format_string.h"
 #include "common/formatter/substitution_formatter.h"
 #include "common/http/header_map_impl.h"
-#include "common/router/header_parser.h"
 #include "common/http/utility.h"
-#include "envoy/api/api.h"
+#include "common/router/header_parser.h"
 
 namespace Envoy {
 namespace LocalReply {

@@ -1346,7 +1346,7 @@ message RedirectAction {
     string prefix_rewrite = 5
         [(validate.rules).string = {well_known_regex: HTTP_HEADER_VALUE strict: false}];
 
-    // Indicates that during forwarding, portions of the path that match the
+    // Indicates that during redirect, portions of the path that match the
     // pattern should be rewritten, even allowing the substitution of capture
     // groups from the pattern into the new path as specified by the rewrite
     // substitution string. This is useful to allow application paths to be

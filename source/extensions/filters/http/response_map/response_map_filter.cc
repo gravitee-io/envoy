@@ -3,14 +3,14 @@
 #include "envoy/http/codes.h"
 #include "envoy/http/header_map.h"
 
-#include "extensions/filters/http/well_known_names.h"
-
 #include "common/common/empty_string.h"
 #include "common/common/enum_to_int.h"
 #include "common/common/logger.h"
 #include "common/http/header_map_impl.h"
 #include "common/http/headers.h"
 #include "common/http/utility.h"
+
+#include "extensions/filters/http/well_known_names.h"
 
 namespace Envoy {
 namespace Extensions {
@@ -19,27 +19,26 @@ namespace ResponseMapFilter {
 
 ResponseMapFilterConfig::ResponseMapFilterConfig(
     const envoy::extensions::filters::http::response_map::v3::ResponseMap& proto_config,
-    const std::string&,
-    Server::Configuration::FactoryContext& context)
-    : response_map_(ResponseMap::Factory::create(proto_config, context, context.messageValidationVisitor())) {}
+    const std::string&, Server::Configuration::FactoryContext& context)
+    : response_map_(ResponseMap::Factory::create(proto_config, context,
+                                                 context.messageValidationVisitor())) {}
 
 FilterConfigPerRoute::FilterConfigPerRoute(
     const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
     Server::Configuration::ServerFactoryContext& context,
     ProtobufMessage::ValidationVisitor& validationVisitor)
     : disabled_(proto_config.disabled()),
-      response_map_(proto_config.has_response_map() ?
-          ResponseMap::Factory::create(proto_config.response_map(), context, validationVisitor) :
-          nullptr) {}
+      response_map_(proto_config.has_response_map()
+                        ? ResponseMap::Factory::create(proto_config.response_map(), context,
+                                                       validationVisitor)
+                        : nullptr) {}
 
-ResponseMapFilter::ResponseMapFilter(ResponseMapFilterConfigSharedPtr config)
-    : config_(config) {}
+ResponseMapFilter::ResponseMapFilter(ResponseMapFilterConfigSharedPtr config) : config_(config) {}
 
 /*
  * Get FilterConfigPerRoute if one exists for the current route.
  */
-const FilterConfigPerRoute*
-ResponseMapFilter::getRouteSpecificConfig(void) {
+const FilterConfigPerRoute* ResponseMapFilter::getRouteSpecificConfig(void) {
   const auto& route = encoder_callbacks_->route();
   if (route == nullptr) {
     return nullptr;
@@ -49,7 +48,7 @@ ResponseMapFilter::getRouteSpecificConfig(void) {
       Http::Utility::resolveMostSpecificPerFilterConfig<FilterConfigPerRoute>(
           Extensions::HttpFilters::HttpFilterNames::get().ResponseMap, route);
   ENVOY_LOG(trace, "response map filter: found route. has per_route_config? {}",
-      per_route_config != nullptr);
+            per_route_config != nullptr);
 
   return per_route_config;
 }
@@ -80,9 +79,8 @@ Http::FilterHeadersStatus ResponseMapFilter::decodeHeaders(Http::RequestHeaderMa
  */
 Http::FilterHeadersStatus ResponseMapFilter::encodeHeaders(Http::ResponseHeaderMap& headers,
                                                            bool end_stream) {
-  ENVOY_LOG(trace,
-      "response map filter: encodeHeaders with http status = {}, end_stream = {}",
-      headers.getStatusValue(), end_stream);
+  ENVOY_LOG(trace, "response map filter: encodeHeaders with http status = {}, end_stream = {}",
+            headers.getStatusValue(), end_stream);
 
   // Save a pointer to the response headers. We need to pass them to the response_map_
   // rewriter later.
@@ -115,16 +113,14 @@ Http::FilterHeadersStatus ResponseMapFilter::encodeHeaders(Http::ResponseHeaderM
   // or to a non-null per-route config. Guard against it anyway.
   if (response_map_ == nullptr) {
     ENVOY_LOG(trace,
-        "response map filter: no response_map_ to match with, do_rewrite_ remains false");
+              "response map filter: no response_map_ to match with, do_rewrite_ remains false");
     return Http::FilterHeadersStatus::Continue;
   }
 
   // Use the response_map_ to match on the request/response pair...
   const ResponseMap::ResponseMapPtr& response_map = *response_map_;
-  do_rewrite_ = response_map->match(
-      request_headers_, headers, encoder_callbacks_->streamInfo());
-  ENVOY_LOG(trace,
-      "response map filter: used response_map_, do_rewrite_ = {}", do_rewrite_);
+  do_rewrite_ = response_map->match(request_headers_, headers, encoder_callbacks_->streamInfo());
+  ENVOY_LOG(trace, "response map filter: used response_map_, do_rewrite_ = {}", do_rewrite_);
 
   // ...and if we decided not to do a rewrite, simply pass through to other filters.
   if (!do_rewrite_) {
@@ -144,8 +140,7 @@ Http::FilterHeadersStatus ResponseMapFilter::encodeHeaders(Http::ResponseHeaderM
   return Http::FilterHeadersStatus::Continue;
 }
 
-Http::FilterDataStatus ResponseMapFilter::encodeData(Buffer::Instance& data,
-                                                     bool end_stream) {
+Http::FilterDataStatus ResponseMapFilter::encodeData(Buffer::Instance& data, bool end_stream) {
   // If this filter is disabled, continue without doing anything.
   if (disabled_) {
     return Http::FilterDataStatus::Continue;
@@ -154,7 +149,7 @@ Http::FilterDataStatus ResponseMapFilter::encodeData(Buffer::Instance& data,
   // If we decided not to rewrite the response, simply pass through to other
   // filters.
   if (!do_rewrite_) {
-      return Http::FilterDataStatus::Continue;
+    return Http::FilterDataStatus::Continue;
   }
 
   // We decided to rewrite the response, so drain any data received from the
@@ -179,7 +174,7 @@ void ResponseMapFilter::doRewrite(void) {
   const Buffer::Instance* encoding_buffer = encoder_callbacks_->encodingBuffer();
 
   ENVOY_LOG(trace, "response map filter: doRewrite with {} encoding_buffer",
-      encoding_buffer != nullptr ? "non-null" : "null");
+            encoding_buffer != nullptr ? "non-null" : "null");
 
   // If this route is disabled, we should never be doing a rewrite.
   // In fact, we never should have even checked if we should do
@@ -198,7 +193,7 @@ void ResponseMapFilter::doRewrite(void) {
   // or to a non-null per-route config. Guard against it anyway.
   if (response_map_ == nullptr) {
     ENVOY_LOG(trace,
-        "response map filter: doRewrite has no response_map_ to rewrite with, doing nothing");
+              "response map filter: doRewrite has no response_map_ to rewrite with, doing nothing");
     return;
   }
 
@@ -209,13 +204,8 @@ void ResponseMapFilter::doRewrite(void) {
   // decodeHeaders and encodeHeaders paths, respectively.
   std::string new_body;
   absl::string_view new_content_type;
-  response_map->rewrite(
-      request_headers_,
-      *response_headers_,
-      encoder_callbacks_->streamInfo(),
-      new_body,
-      new_content_type
-      );
+  response_map->rewrite(request_headers_, *response_headers_, encoder_callbacks_->streamInfo(),
+                        new_body, new_content_type);
 
   // Encoding buffer may be null here even if we saw data in encodeData above. This
   // happens when sendLocalReply sends a response downstream. By adding encoded data

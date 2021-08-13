@@ -24,7 +24,7 @@ std::string CustomHeaderKeyFormatter::format(absl::string_view key) const {
   auto copy = std::string(key);
 
   // Check for a custom header key rewrite
-  const auto &rewrite = rules_.find(copy);
+  const auto& rewrite = rules_.find(copy);
   if (rewrite != rules_.end()) {
     // Return a copy of the rewrite.
     return rewrite->second;

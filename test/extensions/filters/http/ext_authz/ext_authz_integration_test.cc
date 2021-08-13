@@ -202,7 +202,7 @@ public:
 
     if (!new_headers_from_upstream.empty()) {
       // new_headers_from_upstream has the `append=true` flag set, which tells Envoy to append to
-      // the existing header if it exists, and to discard the insertion otherwise.  There's a
+      // the existing header if it exists, and to discard the insertion otherwise. There's a
       // "TODO(dio)" in ext_authz.cc to add a flag to make it be "append-if-set or set-if-unset",
       // but for now it's just "set-if-unset".
       //
@@ -213,8 +213,8 @@ public:
       //
       // FIXME(lukeshu): For Ambassador we patch Envoy to unconditionally enable the "append-if-set
       // or set-if-unset" behavior; we always do the thing that dio has a TODO to add a flag for.
-      // So we need to disable this check.  https://github.com/datawire/ambassador/issues/1313
-      //EXPECT_THAT(new_headers_from_upstream,
+      // So we need to disable this check. https://github.com/datawire/ambassador/issues/1313
+      // EXPECT_THAT(new_headers_from_upstream,
       //            Not(Http::IsSubsetOfHeaders(upstream_request_->headers())));
     }
 

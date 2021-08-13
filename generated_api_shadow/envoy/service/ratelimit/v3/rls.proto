@@ -23,7 +23,7 @@ option (udpa.annotations.file_status).package_version_status = ACTIVE;
 service RateLimitService {
   // For use_alpha to work as expected, we need to convince
   // proto_sync.py that the legacy package is the previous version of
-  // either this package or the v2 package.  And to do that, you'd
+  // either this package or the v2 package. And to do that, you'd
   // "normally" use the
   // "(udpa.annotations.versioning).previous_message_type" option; but
   // we don't have a 'message' to put it on, we only have a 'service'.

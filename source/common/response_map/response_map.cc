@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "envoy/api/api.h"
+
 #include "common/access_log/access_log_impl.h"
 #include "common/common/enum_to_int.h"
 #include "common/config/datasource.h"
@@ -10,8 +12,6 @@
 #include "common/formatter/substitution_formatter.h"
 #include "common/http/header_map_impl.h"
 #include "common/http/utility.h"
-
-#include "envoy/api/api.h"
 
 namespace Envoy {
 namespace ResponseMap {
@@ -51,10 +51,9 @@ using BodyFormatterPtr = std::unique_ptr<BodyFormatter>;
 
 class ResponseMapper {
 public:
-  ResponseMapper(
-      const envoy::extensions::filters::http::response_map::v3::ResponseMapper& config,
-      Server::Configuration::CommonFactoryContext& context,
-      ProtobufMessage::ValidationVisitor& validationVisitor)
+  ResponseMapper(const envoy::extensions::filters::http::response_map::v3::ResponseMapper& config,
+                 Server::Configuration::CommonFactoryContext& context,
+                 ProtobufMessage::ValidationVisitor& validationVisitor)
       : filter_(AccessLog::FilterFactory::fromProto(config.filter(), context.runtime(),
                                                     context.api().randomGenerator(),
                                                     validationVisitor)) {
@@ -66,7 +65,8 @@ public:
     }
 
     if (config.has_body_format_override()) {
-      body_formatter_ = std::make_unique<BodyFormatter>(config.body_format_override(), context.api());
+      body_formatter_ =
+          std::make_unique<BodyFormatter>(config.body_format_override(), context.api());
     }
   }
 
@@ -93,17 +93,12 @@ public:
       request_headers = Http::StaticEmptyHeaders::get().request_headers.get();
     }
 
-    return filter_->evaluate(stream_info,
-                             *request_headers,
-                             response_headers,
-                             *Http::StaticEmptyHeaders::get().response_trailers
-                             );
+    return filter_->evaluate(stream_info, *request_headers, response_headers,
+                             *Http::StaticEmptyHeaders::get().response_trailers);
   }
 
-  bool rewrite(const Http::RequestHeaderMap&,
-               Http::ResponseHeaderMap& response_headers,
-               const Http::ResponseTrailerMap&,
-               StreamInfo::StreamInfo&, std::string& body,
+  bool rewrite(const Http::RequestHeaderMap&, Http::ResponseHeaderMap& response_headers,
+               const Http::ResponseTrailerMap&, StreamInfo::StreamInfo&, std::string& body,
                BodyFormatter*& final_formatter) const {
     if (body_.has_value()) {
       body = body_.value();
@@ -133,10 +128,9 @@ class ResponseMapImpl : public ResponseMap {
 public:
   ResponseMapImpl() : body_formatter_(std::make_unique<BodyFormatter>()) {}
 
-  ResponseMapImpl(
-      const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-      Server::Configuration::CommonFactoryContext& context,
-      ProtobufMessage::ValidationVisitor& validationVisitor)
+  ResponseMapImpl(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
+                  Server::Configuration::CommonFactoryContext& context,
+                  ProtobufMessage::ValidationVisitor& validationVisitor)
       : body_formatter_(config.has_body_format()
                             ? std::make_unique<BodyFormatter>(config.body_format(), context.api())
                             : std::make_unique<BodyFormatter>()) {
@@ -157,10 +151,8 @@ public:
   }
 
   void rewrite(const Http::RequestHeaderMap* request_headers,
-               Http::ResponseHeaderMap& response_headers,
-               StreamInfo::StreamInfo& stream_info,
-               std::string& body,
-               absl::string_view& content_type) const override {
+               Http::ResponseHeaderMap& response_headers, StreamInfo::StreamInfo& stream_info,
+               std::string& body, absl::string_view& content_type) const override {
     if (request_headers == nullptr) {
       request_headers = Http::StaticEmptyHeaders::get().request_headers.get();
     }
@@ -168,13 +160,12 @@ public:
     BodyFormatter* final_formatter{};
     for (const auto& mapper : mappers_) {
       if (!mapper->match(request_headers, response_headers, stream_info)) {
-          continue;
+        continue;
       }
 
       if (mapper->rewrite(*request_headers, response_headers,
-                          *Http::StaticEmptyHeaders::get().response_trailers,
-                          stream_info,
-                          body, final_formatter)) {
+                          *Http::StaticEmptyHeaders::get().response_trailers, stream_info, body,
+                          final_formatter)) {
         break;
       }
     }
@@ -194,10 +185,10 @@ private:
 
 ResponseMapPtr Factory::createDefault() { return std::make_unique<ResponseMapImpl>(); }
 
-ResponseMapPtr Factory::create(
-    const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-    Server::Configuration::CommonFactoryContext& context,
-    ProtobufMessage::ValidationVisitor& validationVisitor) {
+ResponseMapPtr
+Factory::create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
+                Server::Configuration::CommonFactoryContext& context,
+                ProtobufMessage::ValidationVisitor& validationVisitor) {
   return std::make_unique<ResponseMapImpl>(config, context, validationVisitor);
 }
 
