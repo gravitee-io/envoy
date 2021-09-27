@@ -1,0 +1,41 @@
+on:
+  pull_request:
+    branches:
+      - rebase/main
+
+jobs:
+  pytests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pytest-settings:
+          - {legacy-mode: true, fast-reconfigure: false}
+          - {legacy-mode: false, fast-reconfigure: true}
+          - {legacy-mode: false, fast-reconfigure: false}
+        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz]
+
+    steps:
+      - name: Clone Emissary
+        shell: bash
+        run: |
+          set -x
+          git clone git@github.com:emissary-ingress/emissary /tmp/emissary
+
+      - name: Modify Emissary makefile
+        shell: bash
+        run: |
+          version -> ${{ github.event.pull_request.head.sha }}
+          also set the build vars in makefile for custom compile
+
+      - name: Run tests
+        uses: ./.github/actions/execute-pytests
+
+      - name: Teardown Kubernetes cluster
+        shell: bash
+        if: always()
+        run: |
+          ./.ci/cluster-unclaim
+
+      - name: Collect testing logs
+        uses: ./.github/actions/collect-testing-logs
+        if: always()
