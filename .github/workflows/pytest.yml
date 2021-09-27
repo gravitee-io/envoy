@@ -2,6 +2,7 @@ on:
   pull_request:
     branches:
       - rebase/main
+      - aidanhahn/envoy-pytest-ci
 
 jobs:
   pytests:
