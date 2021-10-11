@@ -20,6 +20,8 @@ jobs:
         shell: bash
         run: |
           set -x
+          git config --global --remove-section url."ssh://git@github.com" || true                               
+          git config --global "url.https://$GITHUB_TOKEN@github.com/.insteadOf" git@github.com:                 
           git clone git@github.com:emissary-ingress/emissary /tmp/emissary
 
       - name: Modify Emissary makefile

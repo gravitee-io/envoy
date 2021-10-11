@@ -36,5 +36,3 @@ envoy_cc_test_library(
         "//test/test_common:printers_lib",
     ],
 )
-
-# Trigger tests
