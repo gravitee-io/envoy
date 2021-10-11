@@ -9,10 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        pytest-settings:
-          - {legacy-mode: true, fast-reconfigure: false}
-          - {legacy-mode: false, fast-reconfigure: true}
-          - {legacy-mode: false, fast-reconfigure: false}
         test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz]
 
     steps:
@@ -20,6 +16,8 @@ jobs:
         shell: bash
         run: |
           set -x
+          git config --global --remove-section url."ssh://git@github.com" || true                               
+          git config --global "url.https://$GITHUB_TOKEN@github.com/.insteadOf" git@github.com:                 
           git clone git@github.com:emissary-ingress/emissary /tmp/emissary
 
       - name: Modify Emissary makefile
