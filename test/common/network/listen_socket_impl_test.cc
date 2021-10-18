@@ -183,7 +183,7 @@ TEST_P(ListenSocketImplTestTcp, BindSpecificPort) { testBindSpecificPort(); }
 class TestListenSocket : public ListenSocketImpl {
 public:
   TestListenSocket(Address::InstanceConstSharedPtr address)
-      : ListenSocketImpl(std::make_unique<Network::Test::IoSocketHandlePlatformImpl>(), address) {}
+      : ListenSocketImpl(std::make_unique<Network::IoSocketHandleImpl>(), address) {}
 
   TestListenSocket(Address::IpVersion ip_version)
       : ListenSocketImpl(/*io_handle=*/nullptr, ip_version == Address::IpVersion::v4
