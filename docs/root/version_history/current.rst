@@ -1,5 +1,7 @@
 1.21.0 (January 12, 2022)
 =========================
+1.20.1 (Pending)
+========================
 
 Incompatible Behavior Changes
 -----------------------------
@@ -37,6 +39,7 @@ Bug Fixes
 * tcp: fixing a log error where errors both from the kernel and the transport were not handled gracefully.
 * thrift_proxy: do not close downstream connections when an upstream connection overflow happens.
 * thrift_proxy: fix the thrift_proxy connection manager to correctly report success/error response metrics when performing :ref:`payload passthrough <envoy_v3_api_field_extensions.filters.network.thrift_proxy.v3.ThriftProxy.payload_passthrough>`.
+* listener: fix a crash when updating any listener that does not bind to port.
 
 Removed Config or Runtime
 -------------------------
@@ -124,3 +127,8 @@ Deprecated
 * dns_cache: :ref:`dns_resolution_config <envoy_v3_api_field_extensions.common.dynamic_forward_proxy.v3.DnsCacheConfig.dns_resolution_config>` is deprecated in favor of :ref:`typed_dns_resolver_config <envoy_v3_api_field_extensions.common.dynamic_forward_proxy.v3.DnsCacheConfig.typed_dns_resolver_config>`.
 * tls: :ref:`match_subject_alt_names <envoy_v3_api_field_extensions.transport_sockets.tls.v3.CertificateValidationContext.match_subject_alt_names>` has been deprecated in favor of the :ref:`match_typed_subject_alt_names <envoy_v3_api_field_extensions.transport_sockets.tls.v3.CertificateValidationContext.match_typed_subject_alt_names>`.
 * dns_filter: :ref:`dns_resolution_config <envoy_v3_api_field_extensions.filters.udp.dns_filter.v3.DnsFilterConfig.ClientContextConfig.dns_resolution_config>` is deprecated in favor of :ref:`typed_dns_resolver_config <envoy_v3_api_field_extensions.filters.udp.dns_filter.v3.DnsFilterConfig.ClientContextConfig.typed_dns_resolver_config>`.
+New Features
+------------
+
+Deprecated
+----------
