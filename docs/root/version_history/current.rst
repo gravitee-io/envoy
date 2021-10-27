@@ -40,6 +40,7 @@ Bug Fixes
 * thrift_proxy: do not close downstream connections when an upstream connection overflow happens.
 * thrift_proxy: fix the thrift_proxy connection manager to correctly report success/error response metrics when performing :ref:`payload passthrough <envoy_v3_api_field_extensions.filters.network.thrift_proxy.v3.ThriftProxy.payload_passthrough>`.
 * listener: fix a crash when updating any listener that does not bind to port.
+* listener: listener add can reuse the listener socket of a draining filter chain listener and fix the request lost.
 
 Removed Config or Runtime
 -------------------------
