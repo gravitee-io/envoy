@@ -300,6 +300,15 @@ std::vector<FormatterProviderPtr> SubstitutionFormatParser::parse(const std::str
         current_token = "";
       }
 
+      // escape '%%'
+      if (format.length() > pos+1) {
+        if (format[pos+1] == '%') {
+          current_token += '%';
+          pos++;
+          continue;
+        }
+      }
+
       std::smatch m;
       const std::string search_space = format.substr(pos);
       if (!std::regex_search(search_space, m, command_w_args_regex)) {
