@@ -435,12 +435,17 @@ struct Http1Settings {
     // Performs proper casing of header keys: the first and all alpha characters following a
     // non-alphanumeric character is capitalized.
     ProperCase,
+    // Performs custom casing of header keys. Rules are defined as header_key_format_rules_.
+    Custom,
     // A stateful formatter extension has been configured.
     StatefulFormatter,
   };
 
   // How header keys should be formatted when serializing HTTP/1.1 headers.
   HeaderKeyFormat header_key_format_{HeaderKeyFormat::Default};
+
+  // Rules to use when header_key_format_ == HeaderKeyFormat::Custom
+  std::map<std::string, std::string> header_key_format_rules_{};
 
   // Non-null IFF header_key_format_ is configured to StatefulFormatter.
   StatefulHeaderKeyFormatterFactorySharedPtr stateful_header_key_formatter_;
