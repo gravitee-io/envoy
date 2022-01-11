@@ -71,8 +71,15 @@ const StringUtil::CaseUnorderedSet& caseUnorderdSetContainingUpgradeAndHttp2Sett
 }
 
 HeaderKeyFormatterConstPtr encodeOnlyFormatterFromSettings(const Http::Http1Settings& settings) {
-  if (settings.header_key_format_ == Http1Settings::HeaderKeyFormat::ProperCase) {
+  switch (settings.header_key_format_) {
+  case Http1Settings::HeaderKeyFormat::ProperCase:
     return std::make_unique<ProperCaseHeaderKeyFormatter>();
+
+  case Http1Settings::HeaderKeyFormat::Custom:
+    return std::make_unique<CustomHeaderKeyFormatter>(settings.header_key_format_rules_);
+
+  default:
+    break;
   }
 
   return nullptr;
