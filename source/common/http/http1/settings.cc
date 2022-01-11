@@ -19,6 +19,17 @@ Http1Settings parseHttp1Settings(const envoy::config::core::v3::Http1ProtocolOpt
 
   if (config.header_key_format().has_proper_case_words()) {
     ret.header_key_format_ = Http1Settings::HeaderKeyFormat::ProperCase;
+  } else if (config.header_key_format().has_custom()) {
+    ret.header_key_format = Http1Settings::HeaderKeyFormat::Custom;
+    const auto &rules = config.header_key_format().custom().rules();
+    // Transform rules, inserting new elements into ret.header_key_format_rules map...
+    std::transform(rules.cbegin(), rules.cend(),
+        std::inserter(ret.header_key_format_rules_, ret.header_key_format_rules_.end()),
+        [] (const auto &pair) -> std::pair<std::string, std::string> {
+          // ...by lower casing the key, and keeping the value as is.
+          const LowerCaseString lower(pair.first);
+          return std::pair<std::string, std::string>(lower.get(), pair.second);
+        });
   } else if (config.header_key_format().has_stateful_formatter()) {
     auto& factory =
         Config::Utility::getAndCheckFactory<Envoy::Http::StatefulHeaderKeyFormatterFactoryConfig>(
