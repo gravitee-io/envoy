@@ -2,8 +2,9 @@
 
 #include "envoy/http/filter.h"
 
-#include "common/buffer/buffer_impl.h"
-#include "common/response_map/response_map.h"
+#include "source/common/buffer/buffer_impl.h"
+#include "source/common/response_map/response_map.h"
+#include "envoy/extensions/filters/http/response_map/v3/response_map.pb.h"
 
 namespace Envoy {
 namespace Extensions {
@@ -15,9 +16,8 @@ namespace ResponseMapFilter {
  */
 class ResponseMapFilterConfig {
 public:
-  ResponseMapFilterConfig(
-      const envoy::extensions::filters::http::response_map::v3::ResponseMap& proto_config,
-      const std::string&, Server::Configuration::FactoryContext& context);
+  ResponseMapFilterConfig(const envoy::extensions::filters::http::response_map::v3::ResponseMap& proto_config, const std::string&,
+                          Server::Configuration::FactoryContext& context);
   const ResponseMap::ResponseMapPtr* response_map() const { return &response_map_; }
 
 private:
@@ -31,10 +31,9 @@ using ResponseMapFilterConfigSharedPtr = std::shared_ptr<ResponseMapFilterConfig
  */
 class FilterConfigPerRoute : public Router::RouteSpecificFilterConfig {
 public:
-  FilterConfigPerRoute(
-      const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
-      Server::Configuration::ServerFactoryContext& context,
-      ProtobufMessage::ValidationVisitor& validationVisitor);
+  FilterConfigPerRoute(const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
+                       Server::Configuration::ServerFactoryContext& context,
+                       ProtobufMessage::ValidationVisitor& validationVisitor);
   bool disabled() const { return disabled_; }
   const ResponseMap::ResponseMapPtr* response_map() const { return &response_map_; }
 

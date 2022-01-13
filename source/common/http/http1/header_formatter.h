@@ -1,7 +1,8 @@
 #pragma once
 
-#include "envoy/http/header_formatter.h"
 #include <map>
+
+#include "envoy/http/header_formatter.h"
 
 namespace Envoy {
 namespace Http {
@@ -22,10 +23,11 @@ public:
  */
 class CustomHeaderKeyFormatter : public HeaderKeyFormatter {
 public:
-  CustomHeaderKeyFormatter(const std::map<std::string, std::string> &rules) : rules_(rules) {}
+  CustomHeaderKeyFormatter(const std::map<std::string, std::string>& rules) : rules_(rules) {}
   std::string format(absl::string_view key) const override;
+
 private:
-  const std::map<std::string, std::string> &rules_;
+  const std::map<std::string, std::string>& rules_;
 };
 
 } // namespace Http1

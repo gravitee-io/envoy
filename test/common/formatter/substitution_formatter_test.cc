@@ -1620,9 +1620,9 @@ TEST(SubstitutionFormatterTest, DownstreamPeerCertVStartFormatter) {
     stream_info.downstream_connection_info_provider_->setSslConnection(nullptr);
     DownstreamPeerCertVStartFormatter cert_start_format("DOWNSTREAM_PEER_CERT_V_START(%Y/%m/%d)");
     EXPECT_EQ(absl::nullopt, cert_start_format.format(request_headers, response_headers,
-                                                       response_trailers, stream_info, body));
+                                                      response_trailers, stream_info, body));
     EXPECT_THAT(cert_start_format.formatValue(request_headers, response_headers, response_trailers,
-                                               stream_info, body),
+                                              stream_info, body),
                 ProtoEq(ValueUtil::nullValue()));
   }
   // No validFromPeerCertificate
@@ -1632,9 +1632,9 @@ TEST(SubstitutionFormatterTest, DownstreamPeerCertVStartFormatter) {
     EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(absl::nullopt));
     stream_info.downstream_connection_info_provider_->setSslConnection(connection_info);
     EXPECT_EQ(absl::nullopt, cert_start_format.format(request_headers, response_headers,
-                                                       response_trailers, stream_info, body));
+                                                      response_trailers, stream_info, body));
     EXPECT_THAT(cert_start_format.formatValue(request_headers, response_headers, response_trailers,
-                                               stream_info, body),
+                                              stream_info, body),
                 ProtoEq(ValueUtil::nullValue()));
   }
   // Default format string
