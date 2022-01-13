@@ -1,32 +1,31 @@
-#include "extensions/filters/http/response_map/response_map_filter.h"
+#include "source/extensions/filters/http/response_map/response_map_filter.h"
 
 #include "envoy/http/codes.h"
 #include "envoy/http/header_map.h"
+#include "envoy/extensions/filters/http/response_map/v3/response_map.pb.h"
 
-#include "common/common/empty_string.h"
-#include "common/common/enum_to_int.h"
-#include "common/common/logger.h"
-#include "common/http/header_map_impl.h"
-#include "common/http/headers.h"
-#include "common/http/utility.h"
-
-#include "extensions/filters/http/well_known_names.h"
+#include "source/common/common/empty_string.h"
+#include "source/common/common/enum_to_int.h"
+#include "source/common/common/logger.h"
+#include "source/common/http/header_map_impl.h"
+#include "source/common/http/headers.h"
+#include "source/common/http/utility.h"
+#include "source/extensions/filters/http/well_known_names.h"
 
 namespace Envoy {
 namespace Extensions {
 namespace HttpFilters {
 namespace ResponseMapFilter {
 
-ResponseMapFilterConfig::ResponseMapFilterConfig(
-    const envoy::extensions::filters::http::response_map::v3::ResponseMap& proto_config,
-    const std::string&, Server::Configuration::FactoryContext& context)
+ResponseMapFilterConfig::ResponseMapFilterConfig(const envoy::extensions::filters::http::response_map::v3::ResponseMap& proto_config,
+                                                 const std::string&,
+                                                 Server::Configuration::FactoryContext& context)
     : response_map_(ResponseMap::Factory::create(proto_config, context,
                                                  context.messageValidationVisitor())) {}
 
-FilterConfigPerRoute::FilterConfigPerRoute(
-    const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
-    Server::Configuration::ServerFactoryContext& context,
-    ProtobufMessage::ValidationVisitor& validationVisitor)
+FilterConfigPerRoute::FilterConfigPerRoute(const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
+                                           Server::Configuration::ServerFactoryContext& context,
+                                           ProtobufMessage::ValidationVisitor& validationVisitor)
     : disabled_(proto_config.disabled()),
       response_map_(proto_config.has_response_map()
                         ? ResponseMap::Factory::create(proto_config.response_map(), context,
