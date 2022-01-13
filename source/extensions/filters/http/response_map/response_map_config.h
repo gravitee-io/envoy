@@ -4,8 +4,8 @@
 #include "envoy/extensions/filters/http/response_map/v3/response_map.pb.validate.h"
 #include "envoy/server/filter_config.h"
 
-#include "extensions/filters/http/common/factory_base.h"
-#include "extensions/filters/http/well_known_names.h"
+#include "source/extensions/filters/http/common/factory_base.h"
+#include "source/extensions/filters/http/well_known_names.h"
 
 namespace Envoy {
 namespace Extensions {

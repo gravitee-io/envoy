@@ -48,3 +48,7 @@ envoy.tls.key_providers.cryptomb:
   - envoy.tls.key_providers
   security_posture: robust_to_untrusted_downstream
   status: alpha
+envoy.filters.http.response_map:
+  security_posture: robust_to_untrusted_downstream
+  categories:
+  - envoy.filters.http
