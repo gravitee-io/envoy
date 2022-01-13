@@ -1,8 +1,8 @@
-#include "extensions/filters/http/response_map/config.h"
+#include "source/extensions/filters/http/response_map/response_map_config.h"
 
 #include "envoy/registry/registry.h"
 
-#include "extensions/filters/http/response_map/response_map_filter.h"
+#include "source/extensions/filters/http/response_map/response_map_filter.h"
 
 namespace Envoy {
 namespace Extensions {

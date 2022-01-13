@@ -71,7 +71,7 @@ HeaderKeyFormatterConstPtr encodeOnlyFormatterFromSettings(const Http::Http1Sett
     return std::make_unique<ProperCaseHeaderKeyFormatter>();
 
   case Http1Settings::HeaderKeyFormat::Custom:
-    return std::make_unique<CustomHeaderKeyFormatter>(settings.header_key_format_rules);
+    return std::make_unique<CustomHeaderKeyFormatter>(settings.header_key_format_rules_);
 
   default:
     break;

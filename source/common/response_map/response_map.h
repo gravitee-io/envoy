@@ -1,11 +1,11 @@
 #pragma once
 
-#include "envoy/extensions/filters/http/response_map/v3/response_map.pb.h"
 #include "envoy/http/codes.h"
 #include "envoy/http/header_map.h"
 #include "envoy/server/filter_config.h"
+#include "envoy/extensions/filters/http/response_map/v3/response_map.pb.h"
 
-#include "common/stream_info/stream_info_impl.h"
+#include "source/common/stream_info/stream_info_impl.h"
 
 namespace Envoy {
 namespace ResponseMap {
@@ -42,10 +42,9 @@ public:
   /**
    * Create a ResponseMap object from ProtoConfig
    */
-  static ResponseMapPtr
-  create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-         Server::Configuration::CommonFactoryContext& context,
-         ProtobufMessage::ValidationVisitor& validationVisitor);
+  static ResponseMapPtr create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
+                               Server::Configuration::CommonFactoryContext& context,
+                               ProtobufMessage::ValidationVisitor& validationVisitor);
 
   /**
    * Create a default ResponseMap object with empty config.
