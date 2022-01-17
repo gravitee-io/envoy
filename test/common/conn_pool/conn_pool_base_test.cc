@@ -142,7 +142,7 @@ public:
 
     // Verify that the connection duration timer isn't set yet. This shouldn't happen
     // until after connect.
-    EXPECT_EQ(nullptr, clients_.back()->connection_duration_timer_);
+    EXPECT_EQ(nullptr, clients_.back()->lifetime_timer_);
   }
 
   void newActiveClientAndStream(ActiveClient::State expected_state = ActiveClient::State::BUSY) {
@@ -156,10 +156,10 @@ public:
 
     // Verify that the connect duration timer is consistent with the max connection duration opt
     if (max_connection_duration_opt_.has_value()) {
-      EXPECT_TRUE(clients_.back()->connection_duration_timer_ != nullptr);
-      EXPECT_TRUE(clients_.back()->connection_duration_timer_->enabled());
+      EXPECT_TRUE(clients_.back()->lifetime_timer_ != nullptr);
+      EXPECT_TRUE(clients_.back()->lifetime_timer_->enabled());
     } else {
-      EXPECT_EQ(nullptr, clients_.back()->connection_duration_timer_);
+      EXPECT_EQ(nullptr, clients_.back()->lifetime_timer_);
     }
   }
 
@@ -405,7 +405,7 @@ TEST_F(ConnPoolImplDispatcherBaseTest, MaxConnectionDurationCallbackWhileClosedB
   // Expect an ENVOY_BUG if the connection duration callback fires while in the CLOSED state.
   // We forcibly call the connection duration callback here because under normal circumstances there
   // is no timer set up.
-  EXPECT_ENVOY_BUG(clients_.back()->onConnectionDurationTimeout(),
+  EXPECT_ENVOY_BUG(clients_.back()->onLifetimeTimeout(),
                    "max connection duration reached while closed");
 }
 
@@ -416,7 +416,7 @@ TEST_F(ConnPoolImplDispatcherBaseTest, MaxConnectionDurationCallbackWhileConnect
   // Expect an ENVOY_BUG if the connection duration callback fires while still in the CONNECTING
   // state. We forcibly call the connection duration callback here because under normal
   // circumstances there is no timer set up.
-  EXPECT_ENVOY_BUG(clients_.back()->onConnectionDurationTimeout(),
+  EXPECT_ENVOY_BUG(clients_.back()->onLifetimeTimeout(),
                    "max connection duration reached while connecting");
 
   // Finish the test as if the connection was never successful.
