@@ -1731,6 +1731,7 @@ TEST(SubstitutionFormatterTest, DownstreamPeerCertVStartFormatter) {
   }
   // No validFromPeerCertificate
   {
+    NiceMock<StreamInfo::MockStreamInfo> stream_info;
     DownstreamPeerCertVStartFormatter cert_start_format("DOWNSTREAM_PEER_CERT_V_START(%Y/%m/%d)");
     auto connection_info = std::make_shared<Ssl::MockConnectionInfo>();
     EXPECT_CALL(*connection_info, validFromPeerCertificate()).WillRepeatedly(Return(absl::nullopt));
