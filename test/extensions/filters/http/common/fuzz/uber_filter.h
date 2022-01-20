@@ -36,6 +36,7 @@ protected:
   void cleanFuzzedConfig(absl::string_view filter_name, Protobuf::Message* message);
 
 private:
+  Envoy::Event::MockDispatcher dispatch_;
   NiceMock<Upstream::MockClusterManager> cluster_manager_;
   NiceMock<Server::Configuration::MockFactoryContext> factory_context_;
   NiceMock<Http::MockFilterChainFactoryCallbacks> filter_callback_;
