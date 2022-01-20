@@ -51,6 +51,12 @@ UberFilterFuzzer::UberFilterFuzzer()
           }));
   ON_CALL(encoder_callbacks_, addEncodedTrailers())
       .WillByDefault(testing::ReturnRef(encoded_trailers_));
+  ON_CALL(filter_callback_, dispatcher())
+      .WillByDefault(
+                     Invoke([this]() -> Event::Dispatcher& {
+                       return dispatch_;
+                     })
+      );
   // Set expectations for particular filters that may get fuzzed.
   perFilterSetup();
 }
