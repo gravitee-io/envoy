@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package envoy.extensions.filters.http.response_map.v3;
+package envoy.extensions.filters.http.response_map.v4alpha;
 
-import "envoy/config/accesslog/v3/accesslog.proto";
-import "envoy/config/core/v3/base.proto";
-import "envoy/config/core/v3/substitution_format_string.proto";
+import "envoy/config/accesslog/v4alpha/accesslog.proto";
+import "envoy/config/core/v4alpha/base.proto";
+import "envoy/config/core/v4alpha/substitution_format_string.proto";
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
@@ -13,10 +13,10 @@ import "udpa/annotations/status.proto";
 import "udpa/annotations/versioning.proto";
 import "validate/validate.proto";
 
-option java_package = "io.envoyproxy.envoy.extensions.filters.http.response_map.v3";
+option java_package = "io.envoyproxy.envoy.extensions.filters.http.response_map.v4alpha";
 option java_outer_classname = "ResponseMapProto";
 option java_multiple_files = true;
-option (udpa.annotations.file_status).package_version_status = ACTIVE;
+option (udpa.annotations.file_status).package_version_status = NEXT_MAJOR_VERSION_CANDIDATE;
 
 // [#protodoc-title: ResponseMap]
 // Response map filter :ref:`configuration overview <config_http_filters_response_map>`.
@@ -24,21 +24,27 @@ option (udpa.annotations.file_status).package_version_status = ACTIVE;
 
 // The configuration to filter and change local response.
 message ResponseMapper {
+  option (udpa.annotations.versioning).previous_message_type =
+      "envoy.extensions.filters.http.response_map.v3.ResponseMapper";
+
   // Filter to determine if this mapper should apply.
-  config.accesslog.v3.AccessLogFilter filter = 1 [(validate.rules).message = {required: true}];
+  config.accesslog.v4alpha.AccessLogFilter filter = 1 [(validate.rules).message = {required: true}];
 
   // The new response status code if specified.
   google.protobuf.UInt32Value status_code = 2 [(validate.rules).uint32 = {lt: 600 gte: 200}];
 
   // The new body text if specified. It will be used in the `%LOCAL_REPLY_BODY%`
   // command operator in the `body_format`.
-  config.core.v3.DataSource body = 3;
+  config.core.v4alpha.DataSource body = 3;
 
-  config.core.v3.SubstitutionFormatString body_format_override = 4;
+  config.core.v4alpha.SubstitutionFormatString body_format_override = 4;
 }
 
 // The configuration to customize HTTP responses read by Envoy.
 message ResponseMap {
+  option (udpa.annotations.versioning).previous_message_type =
+      "envoy.extensions.filters.http.response_map.v3.ResponseMap";
+
   // Configuration of list of mappers which allows to filter and change HTTP response.
   // The mappers will be checked by the specified order until one is matched.
   repeated ResponseMapper mappers = 1;
@@ -79,11 +85,14 @@ message ResponseMap {
   //    "path": "/foo"
   //  }
   //
-  config.core.v3.SubstitutionFormatString body_format = 2;
+  config.core.v4alpha.SubstitutionFormatString body_format = 2;
 }
 
 // Extra settings on a per virtualhost/route/weighted-cluster level.
 message ResponseMapPerRoute {
+  option (udpa.annotations.versioning).previous_message_type =
+      "envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute";
+
   oneof override {
     option (validate.required) = true;
 
