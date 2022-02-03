@@ -47,7 +47,7 @@ Http::FilterFactoryCb ExtAuthzFilterConfig::createFilterFactoryFromProtoTyped(
     const uint32_t timeout_ms =
         PROTOBUF_GET_MS_OR_DEFAULT(proto_config.grpc_service(), timeout, DefaultTimeout);
 
-    Config::Utility::checkTransportVersion(proto_config);
+    //Config::Utility::checkTransportVersion(proto_config);
     callback = [&context, filter_config, timeout_ms,
                 proto_config](Http::FilterChainFactoryCallbacks& callbacks) {
       auto client = std::make_unique<Filters::Common::ExtAuthz::GrpcClientImpl>(
