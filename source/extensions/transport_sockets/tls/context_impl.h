@@ -265,7 +265,7 @@ private:
   OcspStapleAction ocspStapleAction(const ServerContextImpl::TlsContext& ctx,
                                     bool client_ocsp_capable);
 
-  SessionContextID generateHashForSessionContextId(const std::vector<std::string>& server_names);
+  SessionContextID generateHashForSessionContextId(const std::vector<std::string>& server_names, const Envoy::Ssl::ServerContextConfig& config);
 
   const std::vector<Envoy::Ssl::ServerContextConfig::SessionTicketKey> session_ticket_keys_;
   const Ssl::ServerContextConfig::OcspStaplePolicy ocsp_staple_policy_;

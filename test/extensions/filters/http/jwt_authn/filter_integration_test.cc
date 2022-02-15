@@ -332,11 +332,11 @@ TEST_P(LocalJwksIntegrationTest, ConnectRequestWithRegExMatch) {
   if (downstreamProtocol() == Http::CodecClient::Type::HTTP1) {
     // Because CONNECT requests for HTTP/1 do not include a path, they will fail
     // to find a route match and return a 404.
-    ASSERT_TRUE(response->waitForEndStream());
+    response->waitForEndStream();
     ASSERT_TRUE(response->complete());
     EXPECT_EQ("404", response->headers().getStatusValue());
   } else {
-    ASSERT_TRUE(response->waitForReset());
+    response->waitForReset();
     ASSERT_TRUE(codec_client_->waitForDisconnect());
   }
 }

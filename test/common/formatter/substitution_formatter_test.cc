@@ -2448,20 +2448,6 @@ TEST(SubstitutionFormatterTest, ParserSuccesses) {
   }
 }
 
-TEST(SubstitutionFormatterTest, EmptyFormatParse) {
-  Http::TestRequestHeaderMapImpl request_headers{{":method", "GET"}, {":path", "/"}};
-  Http::TestResponseHeaderMapImpl response_headers;
-  Http::TestResponseTrailerMapImpl response_trailers;
-  StreamInfo::MockStreamInfo stream_info;
-  std::string body;
-
-  auto providers = SubstitutionFormatParser::parse("");
-
-  EXPECT_EQ(providers.size(), 1);
-  EXPECT_EQ("", providers[0]->format(request_headers, response_headers, response_trailers,
-                                     stream_info, body));
-}
-
 TEST(SubstitutionFormatterTest, EscapingFormatParse) {
   Http::TestRequestHeaderMapImpl request_headers{{":method", "GET"}, {":path", "/"}};
   Http::TestResponseHeaderMapImpl response_headers;
@@ -2476,22 +2462,6 @@ TEST(SubstitutionFormatterTest, EscapingFormatParse) {
                                      stream_info, body));
 }
 
-TEST(SubstitutionFormatterTest, FormatterExtension) {
-  Http::TestRequestHeaderMapImpl request_headers{{":method", "GET"}, {":path", "/"}};
-  Http::TestResponseHeaderMapImpl response_headers;
-  Http::TestResponseTrailerMapImpl response_trailers;
-  StreamInfo::MockStreamInfo stream_info;
-  std::string body;
-
-  std::vector<CommandParserPtr> commands;
-  commands.push_back(std::make_unique<TestCommandParser>());
-
-  auto providers = SubstitutionFormatParser::parse("foo %COMMAND_EXTENSION(x)%", commands);
-
-  EXPECT_EQ(providers.size(), 2);
-  EXPECT_EQ("TestFormatter", providers[1]->format(request_headers, response_headers,
-                                                  response_trailers, stream_info, body));
-}
 
 } // namespace
 } // namespace Formatter
