@@ -581,7 +581,7 @@ TEST_P(RedirectIntegrationTest, InternalRedirectHandledByDirectResponse) {
   redirect_response_.setLocation("http://handle.direct.response/");
   upstream_request_->encodeHeaders(redirect_response_, true);
 
-  ASSERT_TRUE(response->waitForEndStream());
+  response->waitForEndStream();
   ASSERT_TRUE(response->complete());
   EXPECT_EQ("204", response->headers().getStatusValue());
   EXPECT_EQ(1, test_server_->counter("cluster.cluster_0.upstream_internal_redirect_succeeded_total")

@@ -2556,7 +2556,7 @@ TEST_P(ProtocolIntegrationTest, BufferContinue) {
     ASSERT_TRUE(fake_upstream_connection_->waitForDisconnect());
   }
 
-  ASSERT_TRUE(response->waitForEndStream());
+  response->waitForEndStream();
   EXPECT_TRUE(response->complete());
   EXPECT_EQ("500", response->headers().getStatusValue());
 }
