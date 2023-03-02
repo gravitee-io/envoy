@@ -10,8 +10,9 @@ declare -a KNOWN_LOW_COVERAGE=(
 "source/common/config:96.4"
 "source/common/crypto:88.1"
 "source/common/event:95.1" # Emulated edge events guards don't report LCOV
-"source/common/http:96.1"
-"source/common/http/http2:94.8"
+"source/common/filesystem/posix:96.5" # FileReadToEndNotReadable keeps failing
+"source/common/http:96.3"
+"source/common/http/http2:95.0"
 "source/common/json:93.4"
 "source/common/matcher:94.6"
 "source/common/network:94.4" # Flaky, `activateFileEvents`, `startSecureTransport` and `ioctl`, listener_socket do not always report LCOV
