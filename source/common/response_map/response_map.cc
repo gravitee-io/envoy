@@ -38,8 +38,8 @@ public:
               const Http::ResponseTrailerMap& response_trailers,
               const StreamInfo::StreamInfo& stream_info, std::string& body,
               absl::string_view& content_type) const {
-    body =
-        formatter_->format(request_headers, response_headers, response_trailers, stream_info, body);
+    body = formatter_->format(request_headers, response_headers, response_trailers, stream_info, 
+                              body, AccessLog::AccessLogType::NotSet);
     content_type = content_type_;
   }
 
@@ -54,10 +54,8 @@ class ResponseMapper {
 public:
   ResponseMapper(const envoy::extensions::filters::http::response_map::v3::ResponseMapper& config,
                  Server::Configuration::CommonFactoryContext& context,
-                 ProtobufMessage::ValidationVisitor& validationVisitor)
-      : filter_(AccessLog::FilterFactory::fromProto(config.filter(), context.runtime(),
-                                                    context.api().randomGenerator(),
-                                                    validationVisitor)) {
+                 ProtobufMessage::ValidationVisitor&)
+      : filter_(AccessLog::FilterFactory::fromProto(config.filter(), context)) {
     if (config.has_status_code()) {
       status_code_ = static_cast<Http::Code>(config.status_code().value());
     }
@@ -95,7 +93,8 @@ public:
     }
 
     return filter_->evaluate(stream_info, *request_headers, response_headers,
-                             *Http::StaticEmptyHeaders::get().response_trailers);
+                             *Http::StaticEmptyHeaders::get().response_trailers, 
+                              AccessLog::AccessLogType::NotSet);
   }
 
   bool rewrite(const Http::RequestHeaderMap&, Http::ResponseHeaderMap& response_headers,
