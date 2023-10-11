@@ -26,7 +26,7 @@ func envoyGoFilterNewHttpPluginConfig(namePtr, nameLen, configPtr, configLen uin
 }
 
 //export envoyGoFilterDestroyHttpPluginConfig
-func envoyGoFilterDestroyHttpPluginConfig(id uint64) {
+func envoyGoFilterDestroyHttpPluginConfig(id uint64, needDelay int) {
 	configCache.Delete(id)
 }
 

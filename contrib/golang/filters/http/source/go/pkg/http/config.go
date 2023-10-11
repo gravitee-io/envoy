@@ -35,6 +35,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -45,7 +46,8 @@ import (
 
 var (
 	configNumGenerator uint64
-	configCache        = &sync.Map{} // uint64 -> *anypb.Any
+	configCache        = &sync.Map{}            // uint64 -> config(interface{})
+	delayDeleteTime    = time.Millisecond * 100 // 100ms
 )
 
 //export envoyGoFilterNewHttpPluginConfig
@@ -78,8 +80,19 @@ func envoyGoFilterNewHttpPluginConfig(namePtr, nameLen, configPtr, configLen uin
 }
 
 //export envoyGoFilterDestroyHttpPluginConfig
-func envoyGoFilterDestroyHttpPluginConfig(id uint64) {
-	configCache.Delete(id)
+func envoyGoFilterDestroyHttpPluginConfig(id uint64, needDelay int) {
+	if needDelay == 1 {
+		// there is a concurrency race in the c++ side:
+		// 1. when A envoy worker thread is using the cached merged_config_id_ and it will call into Go after some time.
+		// 2. while B envoy worker thread may update the merged_config_id_ in getMergedConfigId, that will delete the id.
+		// so, we delay deleting the id in the Go side.
+		time.AfterFunc(delayDeleteTime, func() {
+			configCache.Delete(id)
+		})
+	} else {
+		// there is no race for non-merged config.
+		configCache.Delete(id)
+	}
 }
 
 //export envoyGoFilterMergeHttpPluginConfig
@@ -103,7 +116,8 @@ func envoyGoFilterMergeHttpPluginConfig(namePtr, nameLen, parentId, childId uint
 		return configNum
 
 	} else {
-		// child override parent by default
+		// child override parent by default.
+		// It's safe to reuse the childId, since the merged config have the same life time with the child config.
 		return childId
 	}
 }
