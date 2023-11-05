@@ -38,8 +38,10 @@ public:
               const Http::ResponseTrailerMap& response_trailers,
               const StreamInfo::StreamInfo& stream_info, std::string& body,
               absl::string_view& content_type) const {
-    body = formatter_->format(request_headers, response_headers, response_trailers, stream_info, 
-                              body, AccessLog::AccessLogType::NotSet);
+
+    body = formatter_->formatWithContext(
+        {&request_headers, &response_headers, &response_trailers, body}, stream_info);
+
     content_type = content_type_;
   }
 
@@ -64,8 +66,7 @@ public:
     }
 
     if (config.has_body_format_override()) {
-      body_formatter_ =
-          std::make_unique<BodyFormatter>(config.body_format_override(), context);
+      body_formatter_ = std::make_unique<BodyFormatter>(config.body_format_override(), context);
     }
   }
 
@@ -93,8 +94,8 @@ public:
     }
 
     return filter_->evaluate(stream_info, *request_headers, response_headers,
-                             *Http::StaticEmptyHeaders::get().response_trailers, 
-                              AccessLog::AccessLogType::NotSet);
+                             *Http::StaticEmptyHeaders::get().response_trailers,
+                             AccessLog::AccessLogType::NotSet);
   }
 
   bool rewrite(const Http::RequestHeaderMap&, Http::ResponseHeaderMap& response_headers,
