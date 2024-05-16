@@ -438,7 +438,7 @@ public:
       EXPECT_EQ(2, values.size());
     }
 
-    if (!new_headers_from_upstream.empty()) {
+    if (!opts.new_headers_from_upstream.empty()) {
       // new_headers_from_upstream has the `append=true` flag set, which tells Envoy to append to
       // the existing header if it exists, and to discard the insertion otherwise. There's a
       // "TODO(dio)" in ext_authz.cc to add a flag to make it be "append-if-set or set-if-unset",
