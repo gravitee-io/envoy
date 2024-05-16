@@ -1633,6 +1633,17 @@ public:
   ~TestHeaderFilterFactory() override = default;
 
   FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
+                         Server::Configuration::FactoryContext& context) override {
+    auto factory_config = Config::Utility::translateToFactoryConfig(
+        config, context.messageValidationVisitor(), *this);
+    const auto& header_config =
+        TestUtility::downcastAndValidate<const envoy::config::accesslog::v3::HeaderFilter&>(
+            *factory_config);
+    return std::make_unique<HeaderFilter>(header_config, context.serverFactoryContext());
+  }
+
+  // Overload that supports generic factory context
+  FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
                          Server::Configuration::GenericFactoryContext& context) override {
     auto factory_config = Config::Utility::translateToFactoryConfig(
         config, context.messageValidationVisitor(), *this);
