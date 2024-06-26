@@ -20,11 +20,11 @@ namespace ResponseMap {
 class BodyFormatter {
 public:
   BodyFormatter()
-      : formatter_(std::make_unique<Envoy::Formatter::FormatterImpl>("%LOCAL_REPLY_BODY%")),
+      : formatter_(std::make_unique<Envoy::Formatter::FormatterImpl>("%LOCAL_REPLY_BODY%", false)),
         content_type_(Http::Headers::get().ContentTypeValues.Text) {}
 
   BodyFormatter(const envoy::config::core::v3::SubstitutionFormatString& config,
-                Server::Configuration::CommonFactoryContext& context)
+                Server::Configuration::GenericFactoryContext& context)
       : formatter_(Formatter::SubstitutionFormatStringUtils::fromProtoConfig(config, context)),
         content_type_(
             !config.content_type().empty() ? config.content_type()
@@ -38,8 +38,8 @@ public:
               const Http::ResponseTrailerMap& response_trailers,
               const StreamInfo::StreamInfo& stream_info, std::string& body,
               absl::string_view& content_type) const {
-    body =
-        formatter_->format(request_headers, response_headers, response_trailers, stream_info, body);
+    body = formatter_->formatWithContext(
+        {&request_headers, &response_headers, &response_trailers, body}, stream_info);
     content_type = content_type_;
   }
 
@@ -53,21 +53,20 @@ using BodyFormatterPtr = std::unique_ptr<BodyFormatter>;
 class ResponseMapper {
 public:
   ResponseMapper(const envoy::extensions::filters::http::response_map::v3::ResponseMapper& config,
-                 Server::Configuration::CommonFactoryContext& context,
-                 ProtobufMessage::ValidationVisitor& validationVisitor)
-      : filter_(AccessLog::FilterFactory::fromProto(config.filter(), context.runtime(),
-                                                    context.api().randomGenerator(),
-                                                    validationVisitor)) {
+                 Server::Configuration::GenericFactoryContext& context,
+                 ProtobufMessage::ValidationVisitor&)
+      : filter_(AccessLog::FilterFactory::fromProto(config.filter(), context)) {
     if (config.has_status_code()) {
       status_code_ = static_cast<Http::Code>(config.status_code().value());
     }
     if (config.has_body()) {
-      body_ = Config::DataSource::read(config.body(), true, context.api());
+      body_ = THROW_OR_RETURN_VALUE(
+          Config::DataSource::read(config.body(), true, context.serverFactoryContext().api()),
+          std::string);
     }
 
     if (config.has_body_format_override()) {
-      body_formatter_ =
-          std::make_unique<BodyFormatter>(config.body_format_override(), context);
+      body_formatter_ = std::make_unique<BodyFormatter>(config.body_format_override(), context);
     }
   }
 
@@ -94,8 +93,11 @@ public:
       request_headers = Http::StaticEmptyHeaders::get().request_headers.get();
     }
 
-    return filter_->evaluate(stream_info, *request_headers, response_headers,
-                             *Http::StaticEmptyHeaders::get().response_trailers);
+    // return filter_->evaluate(stream_info, *request_headers, response_headers,
+    //                          *Http::StaticEmptyHeaders::get().response_trailers);
+    return filter_->evaluate({request_headers, &response_headers,
+                              Http::StaticEmptyHeaders::get().response_trailers.get()},
+                             stream_info);
   }
 
   bool rewrite(const Http::RequestHeaderMap&, Http::ResponseHeaderMap& response_headers,
@@ -130,7 +132,7 @@ public:
   ResponseMapImpl() : body_formatter_(std::make_unique<BodyFormatter>()) {}
 
   ResponseMapImpl(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-                  Server::Configuration::CommonFactoryContext& context,
+                  Server::Configuration::GenericFactoryContext& context,
                   ProtobufMessage::ValidationVisitor& validationVisitor)
       : body_formatter_(config.has_body_format()
                             ? std::make_unique<BodyFormatter>(config.body_format(), context)
@@ -188,7 +190,7 @@ ResponseMapPtr Factory::createDefault() { return std::make_unique<ResponseMapImp
 
 ResponseMapPtr
 Factory::create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-                Server::Configuration::CommonFactoryContext& context,
+                Server::Configuration::GenericFactoryContext& context,
                 ProtobufMessage::ValidationVisitor& validationVisitor) {
   return std::make_unique<ResponseMapImpl>(config, context, validationVisitor);
 }
