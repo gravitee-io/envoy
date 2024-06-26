@@ -35,6 +35,10 @@ public:
    */
   static FilterPtr fromProto(const envoy::config::accesslog::v3::AccessLogFilter& config,
                              Server::Configuration::FactoryContext& context);
+
+  // Overloaded copy of above to take a generic factory context
+  static FilterPtr fromProto(const envoy::config::accesslog::v3::AccessLogFilter& config,
+                             Server::Configuration::GenericFactoryContext& context);
 };
 
 /**
@@ -88,6 +92,11 @@ public:
       const Protobuf::RepeatedPtrField<envoy::config::accesslog::v3::AccessLogFilter>& configs,
       Server::Configuration::FactoryContext& context);
 
+  // Overloaded constructor to take a generic factory context
+  OperatorFilter(
+      const Protobuf::RepeatedPtrField<envoy::config::accesslog::v3::AccessLogFilter>& configs,
+      Server::Configuration::GenericFactoryContext& context);
+
 protected:
   std::vector<FilterPtr> filters_;
 };
@@ -99,6 +108,10 @@ class AndFilter : public OperatorFilter {
 public:
   AndFilter(const envoy::config::accesslog::v3::AndFilter& config,
             Server::Configuration::FactoryContext& context);
+
+  // Overloaded constructor to take a generic factory context
+  AndFilter(const envoy::config::accesslog::v3::AndFilter& config,
+            Server::Configuration::GenericFactoryContext& context);
 
   // AccessLog::Filter
   bool evaluate(const Formatter::HttpFormatterContext& context,
@@ -112,6 +125,10 @@ class OrFilter : public OperatorFilter {
 public:
   OrFilter(const envoy::config::accesslog::v3::OrFilter& config,
            Server::Configuration::FactoryContext& context);
+
+  // Overloaded constructor to take a generic factory context
+  OrFilter(const envoy::config::accesslog::v3::OrFilter& config,
+           Server::Configuration::GenericFactoryContext& context);
 
   // AccessLog::Filter
   bool evaluate(const Formatter::HttpFormatterContext& context,

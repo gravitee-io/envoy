@@ -99,6 +99,52 @@ FilterPtr FilterFactory::fromProto(const envoy::config::accesslog::v3::AccessLog
   return nullptr;
 }
 
+// Overloaded copy of the above to take a generic factory context
+FilterPtr FilterFactory::fromProto(const envoy::config::accesslog::v3::AccessLogFilter& config,
+                                   Server::Configuration::GenericFactoryContext& context) {
+  Runtime::Loader& runtime = context.serverFactoryContext().runtime();
+  Random::RandomGenerator& random = context.serverFactoryContext().api().randomGenerator();
+  ProtobufMessage::ValidationVisitor& validation_visitor = context.messageValidationVisitor();
+  switch (config.filter_specifier_case()) {
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kStatusCodeFilter:
+    return FilterPtr{new StatusCodeFilter(config.status_code_filter(), runtime)};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kDurationFilter:
+    return FilterPtr{new DurationFilter(config.duration_filter(), runtime)};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kNotHealthCheckFilter:
+    return FilterPtr{new NotHealthCheckFilter()};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kTraceableFilter:
+    return FilterPtr{new TraceableRequestFilter()};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kRuntimeFilter:
+    return FilterPtr{new RuntimeFilter(config.runtime_filter(), runtime, random)};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kAndFilter:
+    return FilterPtr{new AndFilter(config.and_filter(), context)};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kOrFilter:
+    return FilterPtr{new OrFilter(config.or_filter(), context)};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kHeaderFilter:
+    return FilterPtr{new HeaderFilter(config.header_filter(), context.serverFactoryContext())};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kResponseFlagFilter:
+    MessageUtil::validate(config, validation_visitor);
+    return FilterPtr{new ResponseFlagFilter(config.response_flag_filter())};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kGrpcStatusFilter:
+    MessageUtil::validate(config, validation_visitor);
+    return FilterPtr{new GrpcStatusFilter(config.grpc_status_filter())};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kMetadataFilter:
+    return FilterPtr{new MetadataFilter(config.metadata_filter(), context.serverFactoryContext())};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kLogTypeFilter:
+    return FilterPtr{new LogTypeFilter(config.log_type_filter())};
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::kExtensionFilter:
+    MessageUtil::validate(config, validation_visitor);
+    {
+      auto& factory =
+          Config::Utility::getAndCheckFactory<ExtensionFilterFactory>(config.extension_filter());
+      return factory.createFilter(config.extension_filter(), context);
+    }
+  case envoy::config::accesslog::v3::AccessLogFilter::FilterSpecifierCase::FILTER_SPECIFIER_NOT_SET:
+    PANIC_DUE_TO_PROTO_UNSET;
+  }
+  IS_ENVOY_BUG("unexpected filter specifier value");
+  return nullptr;
+}
 bool TraceableRequestFilter::evaluate(const Formatter::HttpFormatterContext&,
                                       const StreamInfo::StreamInfo& info) const {
   const Tracing::Decision decision = Tracing::TracerUtility::shouldTraceRequest(info);
@@ -166,12 +212,34 @@ OperatorFilter::OperatorFilter(
   }
 }
 
+// Overloaded constructor to take a generic factory context
+OperatorFilter::OperatorFilter(
+    const Protobuf::RepeatedPtrField<envoy::config::accesslog::v3::AccessLogFilter>& configs,
+    Server::Configuration::GenericFactoryContext& context) {
+  for (const auto& config : configs) {
+    auto filter = FilterFactory::fromProto(config, context);
+    if (filter != nullptr) {
+      filters_.emplace_back(std::move(filter));
+    }
+  }
+}
+
 OrFilter::OrFilter(const envoy::config::accesslog::v3::OrFilter& config,
                    Server::Configuration::FactoryContext& context)
     : OperatorFilter(config.filters(), context) {}
 
+// Overloaded constructor to take a generic factory context
+OrFilter::OrFilter(const envoy::config::accesslog::v3::OrFilter& config,
+                   Server::Configuration::GenericFactoryContext& context)
+    : OperatorFilter(config.filters(), context) {}
+
 AndFilter::AndFilter(const envoy::config::accesslog::v3::AndFilter& config,
                      Server::Configuration::FactoryContext& context)
+    : OperatorFilter(config.filters(), context) {}
+
+// Overloaded constructor to take a generic factory context
+AndFilter::AndFilter(const envoy::config::accesslog::v3::AndFilter& config,
+                     Server::Configuration::GenericFactoryContext& context)
     : OperatorFilter(config.filters(), context) {}
 
 bool OrFilter::evaluate(const Formatter::HttpFormatterContext& context,
