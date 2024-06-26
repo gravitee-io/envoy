@@ -11,6 +11,7 @@
 #include "source/common/http/utility.h"
 
 #include "source/extensions/filters/http/well_known_names.h"
+#include "source/server/generic_factory_context.h"
 
 namespace Envoy {
 namespace Extensions {
@@ -27,11 +28,14 @@ FilterConfigPerRoute::FilterConfigPerRoute(
     const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
     Server::Configuration::ServerFactoryContext& context,
     ProtobufMessage::ValidationVisitor& validationVisitor)
-    : disabled_(proto_config.disabled()),
-      response_map_(proto_config.has_response_map()
-                        ? ResponseMap::Factory::create(proto_config.response_map(), context,
-                                                       validationVisitor)
-                        : nullptr) {}
+    : disabled_(proto_config.disabled()), response_map_([&]() -> ResponseMap::ResponseMapPtr {
+        if (proto_config.has_response_map()) {
+          Server::GenericFactoryContextImpl generic_context(context, validationVisitor);
+          return ResponseMap::Factory::create(proto_config.response_map(), generic_context,
+                                              validationVisitor);
+        }
+        return nullptr;
+      }()) {}
 
 ResponseMapFilter::ResponseMapFilter(ResponseMapFilterConfigSharedPtr config) : config_(config) {}
 
