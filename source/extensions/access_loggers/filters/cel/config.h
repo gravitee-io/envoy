@@ -23,6 +23,12 @@ public:
   Envoy::AccessLog::FilterPtr
   createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
                Server::Configuration::FactoryContext& context) override;
+
+  // Overloaded copy of above to take a generic factory contextt
+  Envoy::AccessLog::FilterPtr
+  createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
+               Server::Configuration::GenericFactoryContext& context) override;
+
   ProtobufTypes::MessagePtr createEmptyConfigProto() override;
   std::string name() const override { return "envoy.access_loggers.extension_filters.cel"; }
 };
