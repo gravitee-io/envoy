@@ -1737,6 +1737,18 @@ public:
         static_cast<uint32_t>(struct_config.fields().at("rate").number_value()));
   }
 
+  // Overload that supports generic factory context
+  FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
+                         Server::Configuration::GenericFactoryContext& context) override {
+    auto factory_config = Config::Utility::translateToFactoryConfig(
+        config, context.messageValidationVisitor(), *this);
+
+    ProtobufWkt::Struct struct_config =
+        *dynamic_cast<const ProtobufWkt::Struct*>(factory_config.get());
+    return std::make_unique<SampleExtensionFilter>(
+        static_cast<uint32_t>(struct_config.fields().at("rate").number_value()));
+  }
+
   ProtobufTypes::MessagePtr createEmptyConfigProto() override {
     return std::make_unique<Protobuf::Struct>();
   }

@@ -28,6 +28,16 @@ public:
   virtual FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
                                  Server::Configuration::GenericFactoryContext& context) PURE;
 
+  /**
+   * Same as above but takes a generic context where the additional Factory context is not needed or
+   * available.
+   * @param context supplies the factory context.
+   * @return an instance of extension filter implementation from a config proto.
+   */
+  virtual FilterBasePtr<Context>
+  createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
+               Server::Configuration::GenericFactoryContext& context) PURE;
+
   std::string category() const override { return "envoy.access_loggers.extension_filters"; }
 };
 

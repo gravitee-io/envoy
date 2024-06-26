@@ -22,6 +22,7 @@ public:
    * @param body response body.
    * @param content_type response content_type.
    */
+
   virtual void rewrite(const Http::RequestHeaderMap* request_headers,
                        Http::ResponseHeaderMap& response_headers,
                        StreamInfo::StreamInfo& stream_info, std::string& body,
@@ -44,12 +45,12 @@ public:
    */
   static ResponseMapPtr
   create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
-         Server::Configuration::CommonFactoryContext& context,
+         Server::Configuration::GenericFactoryContext& context,
          ProtobufMessage::ValidationVisitor& validationVisitor);
 
   /**
    * Create a default ResponseMap object with empty config.
-   * It is used at places without Server::Configuration::CommonFactoryContext.
+   * It is used at places without Server::Configuration::GenericFactoryContext.
    */
   static ResponseMapPtr createDefault();
 };
