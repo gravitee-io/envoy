@@ -19,13 +19,20 @@ namespace ResponseMap {
 
 class BodyFormatter {
 public:
-  BodyFormatter()
-      : formatter_(std::make_unique<Envoy::Formatter::FormatterImpl>("%LOCAL_REPLY_BODY%", false)),
-        content_type_(Http::Headers::get().ContentTypeValues.Text) {}
+  BodyFormatter() : content_type_(Http::Headers::get().ContentTypeValues.Text) {}
+
+  static absl::StatusOr<std::unique_ptr<BodyFormatter>>
+  create(const envoy::config::core::v3::SubstitutionFormatString& config,
+         Server::Configuration::GenericFactoryContext& context) {
+    auto formatter_or_error =
+        Formatter::SubstitutionFormatStringUtils::fromProtoConfig(config, context);
+    RETURN_IF_NOT_OK_REF(formatter_or_error.status());
+    return std::make_unique<BodyFormatter>(config, std::move(*formatter_or_error));
+  }
 
   BodyFormatter(const envoy::config::core::v3::SubstitutionFormatString& config,
-                Server::Configuration::GenericFactoryContext& context)
-      : formatter_(Formatter::SubstitutionFormatStringUtils::fromProtoConfig(config, context)),
+                Formatter::FormatterPtr&& formatter)
+      : formatter_(std::move(formatter)),
         content_type_(
             !config.content_type().empty() ? config.content_type()
             : config.format_case() ==

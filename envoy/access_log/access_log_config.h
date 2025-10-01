@@ -34,9 +34,8 @@ public:
    * @param context supplies the factory context.
    * @return an instance of extension filter implementation from a config proto.
    */
-  virtual FilterBasePtr<Context>
-  createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
-               Server::Configuration::GenericFactoryContext& context) PURE;
+  virtual FilterBasePtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
+                              Server::Configuration::GenericFactoryContext& context) PURE;
 
   std::string category() const override { return "envoy.access_loggers.extension_filters"; }
 };

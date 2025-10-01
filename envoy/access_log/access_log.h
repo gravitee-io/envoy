@@ -74,6 +74,7 @@ public:
   virtual bool evaluate(const LogContext& context, const StreamInfo::StreamInfo& info) const PURE;
 };
 using FilterPtr = std::unique_ptr<Filter>;
+using FilterBasePtr = std::unique_ptr<Filter>;
 
 /**
  * Interface for access log instances.

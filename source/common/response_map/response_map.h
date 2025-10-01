@@ -43,7 +43,7 @@ public:
   /**
    * Create a ResponseMap object from ProtoConfig
    */
-  static ResponseMapPtr
+  static absl::StatusOr<ResponseMapPtr>
   create(const envoy::extensions::filters::http::response_map::v3::ResponseMap& config,
          Server::Configuration::GenericFactoryContext& context,
          ProtobufMessage::ValidationVisitor& validationVisitor);
