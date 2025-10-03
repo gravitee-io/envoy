@@ -26,11 +26,11 @@ For the following example, we are going to assume that Envoy 1.31.1 was just rel
 1. Set some variables to make copy/pasting easier
 
 ```bash
-export GOVERSION="1.22.6" # use whatever the most recent version of go supported by emissary is
+export GOVERSION="1.24.5" # use whatever the most recent version of go supported by emissary is
 ```
 
 ```bash
-export ENVOY_VERSION="1.31.1" # The version of Envoy you are upgrading to
+export ENVOY_VERSION="1.31.10" # The version of Envoy you are upgrading to
 ```
 
 ```bash
@@ -143,7 +143,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    ```
 
    ```bash
-   export GOVERSION="1.22.6" # use whatever the most recent version of go supported by emissary is
+   export GOVERSION="1.24.5" # use whatever the most recent version of go supported by emissary is
    ```
 
    ```bash
@@ -151,7 +151,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    ```
 
    ```bash
-   export ENVOY_VERSION="1.31.1" # The version of Envoy you are upgrading to
+   export ENVOY_VERSION="1.31.10" # The version of Envoy you are upgrading to
    ```
 
    ```bash
@@ -180,7 +180,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    - Various dependencies needed by Envoy/Emissary
 
    ```bash
-   sudo apt -y install build-essential libarchive-tools software-properties-common make jq zstd
+   sudo apt -y install build-essential libarchive-tools software-properties-common make jq zstd git
    ```
 
 4. Setup Git
@@ -247,7 +247,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 
 5. Setup and configure Python
 
-   - We will setup and install python 3.10 as required for building/testing, and then setup a link so that both `python` and `python3` use python 3.10
+   - We will setup and install python 3.10 as required for building/testing, and then setup a link so that both `python` and `python3` use python 3.10. Note: If issues arise, Running these commands individually may help 
 
    ```bash
    sudo add-apt-repository ppa:deadsnakes/ppa && 
@@ -324,11 +324,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 8. Setup Helm
 
    ```bash
-   curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null && 
-   sudo apt-get install apt-transport-https --yes && 
-   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list && 
-   sudo apt-get update && 
-   sudo apt-get install helm && 
+   curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
    helm version
    ```
 
