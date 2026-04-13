@@ -19,7 +19,7 @@ Http::FilterFactoryCb ResponseMapFilterFactory::createFilterFactoryFromProtoType
   };
 }
 
-Router::RouteSpecificFilterConfigConstSharedPtr
+absl::StatusOr<Router::RouteSpecificFilterConfigConstSharedPtr>
 ResponseMapFilterFactory::createRouteSpecificFilterConfigTyped(
     const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
     Server::Configuration::ServerFactoryContext& context,

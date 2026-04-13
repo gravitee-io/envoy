@@ -46,35 +46,6 @@ Envoy::AccessLog::FilterPtr CELAccessLogExtensionFilterFactory::createFilter(
 #endif
 }
 
-// Overloaded copy of above to take a generic factory context
-
-Envoy::AccessLog::FilterPtr CELAccessLogExtensionFilterFactory::createFilter(
-    const envoy::config::accesslog::v3::ExtensionFilter& config,
-    Server::Configuration::GenericFactoryContext& context) {
-
-  auto factory_config =
-      Config::Utility::translateToFactoryConfig(config, context.messageValidationVisitor(), *this);
-
-#if defined(USE_CEL_PARSER)
-  envoy::extensions::access_loggers::filters::cel::v3::ExpressionFilter cel_config =
-      *dynamic_cast<const envoy::extensions::access_loggers::filters::cel::v3::ExpressionFilter*>(
-          factory_config.get());
-
-  auto parse_status = google::api::expr::parser::Parse(cel_config.expression());
-  if (!parse_status.ok()) {
-    throw EnvoyException("Not able to parse filter expression: " +
-                         parse_status.status().ToString());
-  }
-
-  return std::make_unique<CELAccessLogExtensionFilter>(
-      context.serverFactoryContext().localInfo(),
-      Extensions::Filters::Common::Expr::getBuilder(context.serverFactoryContext()),
-      parse_status.value().expr());
-#else
-  throw EnvoyException("CEL is not available for use in this environment.");
-#endif
-}
-
 ProtobufTypes::MessagePtr CELAccessLogExtensionFilterFactory::createEmptyConfigProto() {
   return std::make_unique<envoy::extensions::access_loggers::filters::cel::v3::ExpressionFilter>();
 }

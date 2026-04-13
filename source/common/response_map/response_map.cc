@@ -20,12 +20,16 @@ namespace ResponseMap {
 class BodyFormatter {
 public:
   BodyFormatter()
-      : formatter_(std::make_unique<Envoy::Formatter::FormatterImpl>("%LOCAL_REPLY_BODY%", false)),
+      : formatter_(THROW_OR_RETURN_VALUE(
+            Envoy::Formatter::FormatterImpl::create("%LOCAL_REPLY_BODY%", false),
+            Envoy::Formatter::FormatterPtr)),
         content_type_(Http::Headers::get().ContentTypeValues.Text) {}
 
   BodyFormatter(const envoy::config::core::v3::SubstitutionFormatString& config,
                 Server::Configuration::GenericFactoryContext& context)
-      : formatter_(Formatter::SubstitutionFormatStringUtils::fromProtoConfig(config, context)),
+      : formatter_(THROW_OR_RETURN_VALUE(
+            Formatter::SubstitutionFormatStringUtils::fromProtoConfig(config, context),
+            Formatter::FormatterPtr)),
         content_type_(
             !config.content_type().empty() ? config.content_type()
             : config.format_case() ==
@@ -38,7 +42,7 @@ public:
               const Http::ResponseTrailerMap& response_trailers,
               const StreamInfo::StreamInfo& stream_info, std::string& body,
               absl::string_view& content_type) const {
-    body = formatter_->formatWithContext(
+    body = formatter_->format(
         {&request_headers, &response_headers, &response_trailers, body}, stream_info);
     content_type = content_type_;
   }
