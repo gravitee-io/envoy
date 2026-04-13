@@ -1633,17 +1633,6 @@ public:
   ~TestHeaderFilterFactory() override = default;
 
   FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
-                         Server::Configuration::FactoryContext& context) override {
-    auto factory_config = Config::Utility::translateToFactoryConfig(
-        config, context.messageValidationVisitor(), *this);
-    const auto& header_config =
-        TestUtility::downcastAndValidate<const envoy::config::accesslog::v3::HeaderFilter&>(
-            *factory_config);
-    return std::make_unique<HeaderFilter>(header_config, context.serverFactoryContext());
-  }
-
-  // Overload that supports generic factory context
-  FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
                          Server::Configuration::GenericFactoryContext& context) override {
     auto factory_config = Config::Utility::translateToFactoryConfig(
         config, context.messageValidationVisitor(), *this);
@@ -1744,18 +1733,6 @@ public:
         config, context.messageValidationVisitor(), *this);
 
     Protobuf::Struct struct_config = *dynamic_cast<const Protobuf::Struct*>(factory_config.get());
-    return std::make_unique<SampleExtensionFilter>(
-        static_cast<uint32_t>(struct_config.fields().at("rate").number_value()));
-  }
-
-  // Overload that supports generic factory context
-  FilterPtr createFilter(const envoy::config::accesslog::v3::ExtensionFilter& config,
-                         Server::Configuration::GenericFactoryContext& context) override {
-    auto factory_config = Config::Utility::translateToFactoryConfig(
-        config, context.messageValidationVisitor(), *this);
-
-    ProtobufWkt::Struct struct_config =
-        *dynamic_cast<const ProtobufWkt::Struct*>(factory_config.get());
     return std::make_unique<SampleExtensionFilter>(
         static_cast<uint32_t>(struct_config.fields().at("rate").number_value()));
   }
