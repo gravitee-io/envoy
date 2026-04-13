@@ -27,7 +27,7 @@ public:
       const std::string& stats_prefix, Server::Configuration::FactoryContext& context) override;
 
 private:
-  Router::RouteSpecificFilterConfigConstSharedPtr createRouteSpecificFilterConfigTyped(
+  absl::StatusOr<Router::RouteSpecificFilterConfigConstSharedPtr> createRouteSpecificFilterConfigTyped(
       const envoy::extensions::filters::http::response_map::v3::ResponseMapPerRoute& proto_config,
       Server::Configuration::ServerFactoryContext& context,
       ProtobufMessage::ValidationVisitor& validator) override;
