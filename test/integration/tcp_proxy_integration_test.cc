@@ -1492,11 +1492,7 @@ TEST_P(TcpProxySslIntegrationTest, SslConnectionDataEarlyReadNotCached) {
   log_result = waitForAccessLog(access_log_path, 1, false);
   EXPECT_EQ(log_result,
             "san=spiffe://lyft.com/frontend-team,http://frontend.lyft.com "
-<<<<<<< HEAD
-            "fingerprint=c07e14fc43b9c7b3d92f1004f91d3a9e071d9c93a58afc76b4c14303ae3a0f34");
-=======
             "fingerprint=8c78924d27b214d938858cb5e76b64e6cd00614fa102e7f56c1273068845ae2f");
->>>>>>> fcda98b0ef (fix golang filter end_stream=true injected before trailers; update client cert fingerprint)
 }
 
 // Test that a half-close on the downstream side is proxied correctly.
