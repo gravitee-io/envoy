@@ -1492,7 +1492,7 @@ TEST_P(TcpProxySslIntegrationTest, SslConnectionDataEarlyReadNotCached) {
   log_result = waitForAccessLog(access_log_path, 1, false);
   EXPECT_EQ(log_result,
             "san=spiffe://lyft.com/frontend-team,http://frontend.lyft.com "
-            "fingerprint=7346b3836cfc41385351191b5e6163f1a69704cfdf0a03634ed2019128e6fdc4");
+            "fingerprint=8c78924d27b214d938858cb5e76b64e6cd00614fa102e7f56c1273068845ae2f");
 }
 
 // Test that a half-close on the downstream side is proxied correctly.
