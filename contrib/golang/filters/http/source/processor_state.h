@@ -123,9 +123,13 @@ public:
     Buffer::OwnedImpl data_to_write;
     doDataList.moveOut(data_to_write);
 
+    // When trailers are pending, inject data with end_stream=false. If we inject
+    // with end_stream=true here, maybeEndDecode() marks decoder_filter_chain_complete_
+    // before the trailers are processed, causing an assert in decodeTrailers().
+    bool inject_end_stream = do_end_stream_ && trailers == nullptr;
     ENVOY_LOG(debug, "golang filter injecting data to filter chain, end_stream: {}",
-              do_end_stream_);
-    injectDataToFilterChain(data_to_write, do_end_stream_);
+              inject_end_stream);
+    injectDataToFilterChain(data_to_write, inject_end_stream);
   }
 
   void processHeader(bool end_stream) {
