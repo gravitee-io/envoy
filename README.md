@@ -201,7 +201,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    - Various dependencies needed by Envoy/Emissary
 
    ```bash
-   sudo apt -y install build-essential libarchive-tools software-properties-common make jq zstd git
+   sudo apt -y install build-essential libarchive-tools software-properties-common make jq zstd git vim
    ```
 
 4. Setup Git
@@ -210,7 +210,8 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 
    ```bash
    git config --global user.name "${GH_NAME}" && 
-   git config --global user.email "${GH_EMAIL}"
+   git config --global user.email "${GH_EMAIL}" && 
+   git config --global core.editor vim
    ```
 
    - Generate a new SSH key to add to your GitHub account so you can push/pull the private repos. Save it to a file such as `~/.ssh/github_envoy_vm_ed25519`:
