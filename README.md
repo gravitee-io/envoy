@@ -141,7 +141,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    | Provisioning Model | Standard         |
    | vCPUs              | 112 (or more)    |
    | Memory (GB)        | 896              |
-   | OS                 | Ubuntu 20.04 LTS |
+   | OS                 | Ubuntu 22.04 LTS (e.g. image `ubuntu-2204-jammy-v20260731`) |
    | Disk (GB)          | 1,500            |
 
 2. Start the VM and connect to it
@@ -268,19 +268,16 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 
 5. Setup and configure Python
 
-   - We will setup and install python 3.10 as required for building/testing, and then setup a link so that both `python` and `python3` use python 3.10. Note: If issues arise, Running these commands individually may help 
+   - The Envoy build, tests, and proto generation all run inside the `envoyproxy/envoy-build-ubuntu` container (via `ci/run_envoy_docker.sh`), and Bazel brings its own hermetic Python toolchain, so the host Python version does not matter for anything in this guide. You just need a working `python3`, `pip`, and `venv`, plus a `python` alias for scripts that expect it.
+   - Ubuntu 22.04 ships Python 3.10 as the default `python3`, so there is no need for the `deadsnakes` PPA (it does not provide 3.10 for 22.04 anyway). Do **not** delete or re-link `/usr/bin/python3`; that is what older versions of this guide did on 20.04 and it breaks `apt` tooling.
 
    ```bash
-   sudo add-apt-repository ppa:deadsnakes/ppa && 
-   sudo apt install python3.10 python3-pip python3.10-venv && 
-   sudo rm /usr/bin/python3 && 
-   sudo ln -s /usr/bin/python3.10 /usr/bin/python3 && 
-   sudo ln -s /usr/bin/python3.10 /usr/bin/python && 
-   sudo apt remove python3-apt &&
-   sudo apt install python3-apt &&
+   sudo apt -y install python3 python3-pip python3-venv python-is-python3 && 
    python3 --version && 
    python --version
    ```
+
+   - If you ever need to run Emissary's Python lint or chart tests on the VM (not part of this guide), those create a venv with the Python version from `docker/base-python/Dockerfile` in Emissary (3.12 at the time of writing), which on 22.04 is available from `ppa:deadsnakes/ppa` as `python3.12 python3.12-venv`.
 
 6. Setup Docker
 
