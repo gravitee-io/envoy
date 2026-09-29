@@ -1,6 +1,6 @@
 # Ambassador Envoy Fork
 
-This repo contains the Ambassador fork of [Envoy Proxy][]. It is used to maintain a handfull of patches on top of stock Envoy for some features of Edge Stack described below. At the time all of these were written, it was not possible to do these things with stock Envoy, but if there comes a point where all of these features below can be implemented using config for stock envoy, then this fork should be removed and Emissary / Edge Stack should return to using stock Envoy.
+This repo contains the Ambassador fork of [Envoy Proxy][]. It is used to maintain a handful of patches on top of stock Envoy for some features of Edge Stack described below. At the time all of these were written, it was not possible to do these things with stock Envoy, but if there comes a point where all of these features below can be implemented using config for stock envoy, then this fork should be removed and Emissary / Edge Stack should return to using stock Envoy.
 
 ## Note to future Devs
 
@@ -13,62 +13,83 @@ if you find any information in this readme is no longer accurate, please do your
   For this repo, we don't actually care about Envoy Proxy's `main` branch, or any other branches other than release branches. Don't worry about GitHub telling you that this branch is out of date with the fork.
   Everything that we care about for this repo happens in the `rebase/release/x.y.z` branches. Each of those branches represents a released version of Envoy. We make a new `rebase/release/x.y.z` branch for
   each specific Envoy release rather than upstream which uses `release/x.y` and continues to update that for patch releases. The reason for this is that with [Emissary][] and [Edge Stack][], we use a similar approach to upstream
-  and have `release/x.y` branches. If we were to need to ship a patch release for an older minor version of Edge Stack / Emissary, we would want the commit in this repo being referenced there to still exist, and not be missing due to a rebase to keep it updated with the upstream `release/x.y` branch and continually replaying our commits on top of that. It's a minor difference, but it makes managing previously released verisons a little easier.
+  and have `release/x.y` branches. If we were to need to ship a patch release for an older minor version of Edge Stack / Emissary, we would want the commit in this repo being referenced there to still exist, and not be missing due to a rebase to keep it updated with the upstream `release/x.y` branch and continually replaying our commits on top of that. It's a minor difference, but it makes managing previously released versions a little easier.
 
 ### 2. Create a new `rebase/release/x.y.z` branch
 
-Later on, we will setup a development VM for building and testing Envoy. The following steps will assume that you are updating the code using your personal computer, but if you would rather start with the VM and then do your development there using an editor like vim or using VSCode over ssh, then you can skip to [step 4][], get the VM setup, then return here and perform [step 2][] and [step 3][] from the virtual machine. In most cases, the commits are be able to be added without need to write or change much.
+Later on, we will setup a development VM for building and testing Envoy. The following steps will assume that you are updating the code using your personal computer, but if you would rather start with the VM and then do your development there using an editor like vim or using VSCode over ssh, then you can skip to [step 5][], get the VM setup, then return here and perform [step 3][] and [step 4][] from the virtual machine. In most cases, the commits can be added without needing to write or change much.
 
 Typically using a terminal editor such as vim is more than sufficient for any editing you will need to do while connected to the VM, but [for a guide on setting up VSCode over SSH, refer to this doc][]
 
-For the following example, we are going to assume that Envoy 1.31.1 was just released and you need to upgrade Edge Stack / Emissary to use Envoy 1.31.1.
+For the following example, we are going to assume that Envoy 1.38.4 was just released and you need to upgrade Edge Stack / Emissary to use Envoy 1.38.4. Whenever you do an upgrade, please bump the example values below to the versions you used so the next person can copy/paste them.
 
 1. Set some variables to make copy/pasting easier
 
 ```bash
-export GOVERSION="1.24.5" # use whatever the most recent version of go supported by emissary is
+export GOVERSION="1.25.10" # use the `toolchain` version from go.mod in datawire/emissary
 ```
 
 ```bash
-export ENVOY_VERSION="1.31.10" # The version of Envoy you are upgrading to
+export ENVOY_VERSION="1.38.4" # The version of Envoy you are upgrading to
 ```
 
 ```bash
-export SHORT_ENVOY_VERSION="1.31" # Same as above, but without the patch verison at the end
+export SHORT_ENVOY_VERSION="1.38" # Same as above, but without the patch version at the end
 ```
 
-1. Clone this repo
+2. Clone this repo
 
    ```bash
    mkdir envoy-upgrade && 
    cd ./envoy-upgrade && 
-   git clone git@github.com:datawire/envoy.git .
+   git clone git@github.com:gravitee-io/envoy.git .
    ```
 
-2. Add the mainline Envoy repo as a new remote
+3. Add the mainline Envoy repo as a new remote
 
    ```bash
    git remote add upstream git@github.com:envoyproxy/envoy.git && 
    git fetch upstream
    ```
 
-3. Start a new `rebase/release/x.y.z` branch from the matching upstream minor release branch
+4. Start a new `rebase/release/x.y.z` branch from the matching upstream minor release branch
+   - Note: this branches from the head of `upstream/release/vX.Y`, which may be a commit or two past the `vX.Y.Z` tag. That is fine and is what previous upgrades have done.
 
    ```bash
    git checkout -b rebase/release/v${ENVOY_VERSION} upstream/release/v${SHORT_ENVOY_VERSION}
    ```
 
-### 2. Add our custom commits to your new branch
+### 3. Add our custom commits to your new branch
 
-Cherry-pick our custom commits from the next most recent `rebase/release/x.y.z` branch in this repo into your new branch.
-   If you need to make any edits to make sure that the commits go in cleanly, try to separate your fixup commits from the orginal commits that add the custom features so that it is easier for those in the future to tell what the original logic and what the workarounds and fixes from upstream changes/refactors are. The following custom commits you should be looking for are:
+Cherry-pick our custom commits from the next most recent `rebase/release/x.y.z` branch in this repo into your new branch. You can find that branch and list its custom commits with:
+
+```bash
+git branch -r | grep 'origin/rebase/release/' | sort -V | tail -n 3
+```
+
+```bash
+# example for finding the custom commits on the 1.37.5 branch
+git log --reverse --oneline upstream/release/v1.37..origin/rebase/release/v1.37.5
+```
+
+If you need to make any edits to make sure that the commits go in cleanly, try to separate your fixup commits from the original commits that add the custom features so that it is easier for those in the future to tell what the original logic and what the workarounds and fixes from upstream changes/refactors are. The following custom commits you should be looking for are:
 
 - `feat(http1): adds Custom header rewrite rules`: Allows us to support certain header case override functionality not (currently) supported by stock envoy. This is used for the [header_case_overrides][] feature in Edge Stack.
 - `feat(response_map): add custom http filter for modifying responses`: This supports the [custom error responses][] feature in Edge Stack that allows you to send custom static responses back to clients when we receive. This can likely be supported with the local reply filters now available in mainline Envoy and drop this commit.
 - `feat(ext_authz): allow appending non-existent headers`: This supports the amb-sidecar ext_authz filter that supports Edge Stack's `Filter`/`FilterPolicy` features getting the ability to create new headers on requests instead of being limited to appending to or changing existing headers only. This feature can likely now be supported with the append actions on the ext_authz response now available in mainline Envoy and drop this commit.
 - `udpa naming workaround`: fixes a change in package dependencies
-- `fix response map from context refactor`: This fixes the above response map commit which needed large changes to be compatabile with upstream refactors around contexts
+- `fix response map from context refactor`: This fixes the above response map commit which needed large changes to be compatible with upstream refactors around contexts
 - `fix busted ext_authz test`: Fixes an ext_authz test broken by our custom commit for the headers
+- `Fixing custom commits`: Removes access log code from the response map commit that no longer compiles after upstream refactors
+- `fix golang filter end_stream=true injected before trailers`: Fixes a crash in the contrib golang HTTP filter (used by Edge Stack's `filter.so`) when data is injected while trailers are pending. Check whether upstream has fixed `contrib/golang/filters/http/source/processor_state.h` before carrying this forward.
+
+Some older branches also carry commits that regenerate expired test certificates under `test/config/integration/certs`. Upstream regenerates these periodically, so before cherry-picking them, check whether the certs on your new branch are still valid:
+
+```bash
+for f in test/config/integration/certs/*cert.pem; do echo "$f $(openssl x509 -in $f -noout -enddate)"; done
+```
+
+If they expire more than a year out, skip the cert commits (`expired_cert.pem` is intentionally expired and should be ignored). Also double check that none of the commits you cherry-pick contain leftover `<<<<<<<` conflict markers; it has happened before.
 
 When you are done, push your new branch to this repo and set this variable to the commit at the head of your branch
 
@@ -76,12 +97,12 @@ When you are done, push your new branch to this repo and set this variable to th
 export COMMIT_HASH=$(git rev-parse HEAD)
 ```
 
-### 3. Create new tags
+### 4. Create new tags
 
 We don't need any PRs in this repo. Once your new branch is up, you will cut two tags from the head of the branch and push them.
 
 1. Create a version tag
-   - You will likely need to first delete the local tag from the upsteam envoy remote we added. We don't want to push that.
+   - You will likely need to first delete the local tag from the upstream envoy remote we added. We don't want to push that.
 
    ```bash
    git tag -d v${ENVOY_VERSION} && 
@@ -90,27 +111,27 @@ We don't need any PRs in this repo. Once your new branch is up, you will cut two
    ```
 
 2. Create a custom tag
-   - Next, we push a custom tag with the format `datawire-1.31.1-<full commit hash>`. The build/release pipelines in Emissary and Edge Stack are very janky and will be looking for a tag following this format. Use the commit hash of the most recent commit on your new branch.
+   - Next, we push a custom tag with the format `datawire-1.38.4-<full commit hash>`. The build/release pipelines in Emissary and Edge Stack are very janky and will be looking for a tag following this format. Use the commit hash of the most recent commit on your new branch.
 
    ```bash
    git tag datawire-${ENVOY_VERSION}-${COMMIT_HASH} && 
    git push origin datawire-${ENVOY_VERSION}-${COMMIT_HASH}
    ```
 
-### 4. VM Creation Guide (for building + testing Envoy)
+### 5. VM Creation Guide (for building + testing Envoy)
 
 Unfortunately the following process will not work if the above steps have not been done. If you get to the build/test step and find that there are issues such as code failing to compile or legitimate test failures, then you may have to go back to the above steps, edit the branch, delete the existing tags, and push new ones.
 
 The following sections will walk you through setting up a virtual machine in GCP to build/test Envoy and then update Emissary with those changes once we have validated that everything builds and passes tests.
 
-You can try using your local PC since Envoy uses Bazel and it should be hermetic; however, when you need to run the Bazel test suite, it will use a ridiculous amount of cpu, memory and disk space. We have done this once or twice in the past, but it typicaly involved letting a laptop with at least 1TB of disk space run at it for a day or two without having anything else open. By using a VM in GCP we can reduce the build and test time down to something more reasonable (somewhere between 1-4 hours depending on how many test flakes there are). It also allows you to work on other tasks while the VM is churning rather than bogging down your personal computer.
+You can try using your local PC since Envoy uses Bazel and it should be hermetic; however, when you need to run the Bazel test suite, it will use a ridiculous amount of cpu, memory and disk space. We have done this once or twice in the past, but it typically involved letting a laptop with at least 1TB of disk space run at it for a day or two without having anything else open. By using a VM in GCP we can reduce the build and test time down to something more reasonable (somewhere between 1-4 hours depending on how many test flakes there are). It also allows you to work on other tasks while the VM is churning rather than bogging down your personal computer.
 
 If someone at Ambassador wants automate the following via VM templates/scripts then that would be more efficient. We haven't prioritized that since this is a process that does not need to be done very often.
 
 The steps here will assume you have some familiarity with Google Cloud Platform (GCP) and creating VM’s. If not be sure to spend some time familiarizing yourself with GCP. The Cloud Console (web ui) or gcloud cli can be used.
 
-1. Create a new Virtual Machine in GCP Compute enginer
-   - Make sure to create it in the `datawire-dev` project if you are from Amabssador
+1. Create a new Virtual Machine in GCP Compute Engine
+   - Make sure to create it in the `datawire-dev` project if you are from Ambassador
    - We will setup a ram disk to help with the speed, but know that the process of building/testing consumes a massive amount of CPU,  memory, and disk space.
    - The following settings are recommended. The preset machine types change from time to time, so just try to find the cheapest one with the settings closest to the below values or create a custom one.
    - **IMPORTANT: these VMs are very costly to run, so make sure you turn it off as soon as it is no longer needed**
@@ -134,7 +155,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
       gcloud compute ssh --zone <your vm zone> <your vm name> --project "datawire-dev"
      ```
 
-### 5. VM Configuration Guide
+### 6. VM Configuration Guide
 
 1. Set the same variables you did earlier on the VM
 
@@ -143,7 +164,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    ```
 
    ```bash
-   export GOVERSION="1.24.5" # use whatever the most recent version of go supported by emissary is
+   export GOVERSION="1.25.10" # use the `toolchain` version from go.mod in datawire/emissary
    ```
 
    ```bash
@@ -151,11 +172,11 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    ```
 
    ```bash
-   export ENVOY_VERSION="1.31.10" # The version of Envoy you are upgrading to
+   export ENVOY_VERSION="1.38.4" # The version of Envoy you are upgrading to
    ```
 
    ```bash
-   export SHORT_ENVOY_VERSION="1.31" # Same as above, but without the patch verison at the end
+   export SHORT_ENVOY_VERSION="1.38" # Same as above, but without the patch version at the end
    ```
 
    ```bash
@@ -343,7 +364,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    tmpfs           700G  160K  700G   1% /var/lib/docker
    ```
 
-### 6. Building, testing, and updating Envoy for Emissary / Edge Stack
+### 7. Building, testing, and updating Envoy for Emissary / Edge Stack
 
 1. Within the VM, clone Emissary (the private fork, not the public repo)
 
@@ -444,9 +465,9 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    git add . && git commit -m "update Envoy to version ${ENVOY_VERSION}" --signoff && git push origin dev/upgrade-envoy/v${ENVOY_VERSION}
    ```
 
-[step 2]: #2-add-our-custom-commits-to-your-new-branch
-[step 3]: #3-create-new-tags
-[step 4]: #4-vm-creation-guide-for-building--testing-envoy
+[step 3]: #3-add-our-custom-commits-to-your-new-branch
+[step 4]: #4-create-new-tags
+[step 5]: #5-vm-creation-guide-for-building--testing-envoy
 
 [for a guide on setting up VSCode over SSH, refer to this doc]: ./VSCODE_WITH_SSH.md
 
