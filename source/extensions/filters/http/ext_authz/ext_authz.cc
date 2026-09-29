@@ -833,6 +833,8 @@ void Filter::onComplete(Filters::Common::ExtAuthz::ResponsePtr&& response) {
             updateEffect(Effect::MutationRejectedSizeLimitExceeded);
             return;
           }
+        } else {
+          request_headers_->addCopy(lowercase_key, value);
         }
         break;
       }
