@@ -325,6 +325,13 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 
    - Then **log out and back in** (close the SSH session and reconnect) so the group membership takes effect. Do **not** use `newgrp docker` for the shell you run the build from: it makes `docker` your primary group, and Envoy's build container runs `groupmod -g $(id -g) envoybuild` on startup, which fails with `groupmod: GID '998' already exists` when that GID is already taken inside the build image. The build then silently does nothing and `make update-base` fails a moment later with `release.tar.zst: Cannot open: No such file or directory`. If you must stay in a `newgrp` shell, run the build with `export USER_GID=$(id -u)` set.
    - Verify with `docker run --rm hello-world` before moving on.
+   - If `docker` commands fail with `permission denied while trying to connect to the docker API` and `id` no longer lists the `docker` group after you reconnect, the GCP guest agent has reset your supplementary groups. Add `docker` to the guest agent's group list so the membership survives, then log out and back in again:
+
+   ```bash
+   sudo usermod -aG docker $USER && 
+   sudo sed -i 's/^groups = .*/&,docker/' /etc/default/instance_configs.cfg && 
+   sudo systemctl restart google-guest-agent
+   ```
 
    - Login to docker with the bot account (use the content of the d6edevautomaton.envoyvms.token file in Keybase as the password)
 
