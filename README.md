@@ -72,24 +72,25 @@ git branch -r | grep 'origin/rebase/release/' | sort -V | tail -n 3
 git log --reverse --oneline upstream/release/v1.37..origin/rebase/release/v1.37.5
 ```
 
-If you need to make any edits to make sure that the commits go in cleanly, try to separate your fixup commits from the original commits that add the custom features so that it is easier for those in the future to tell what the original logic and what the workarounds and fixes from upstream changes/refactors are. The following custom commits you should be looking for are:
+Keep the number of commits small: one commit per feature, with any fixups needed for a new Envoy version squashed into the feature commit they belong to. Fewer commits means fewer cherry-picks next time. Record what was folded in (and why) in the commit body so the history of workarounds is still discoverable. As of the 1.38.4 branch there are four commits:
 
 - `feat(http1): adds Custom header rewrite rules`: Allows us to support certain header case override functionality not (currently) supported by stock envoy. This is used for the [header_case_overrides][] feature in Edge Stack.
-- `feat(response_map): add custom http filter for modifying responses`: This supports the [custom error responses][] feature in Edge Stack that allows you to send custom static responses back to clients when we receive. This can likely be supported with the local reply filters now available in mainline Envoy and drop this commit.
+- `feat(response_map): add custom http filter for modifying responses`: This supports the [custom error responses][] feature in Edge Stack that allows you to send custom static responses back to clients. This can likely be supported with the local reply filters now available in mainline Envoy and drop this commit. Its commit body lists the upstream refactors it has been patched around over the years (udpa/xds repo renames, context refactor, access log changes, `route()` returning `OptRef`).
 - `feat(ext_authz): allow appending non-existent headers`: This supports the amb-sidecar ext_authz filter that supports Edge Stack's `Filter`/`FilterPolicy` features getting the ability to create new headers on requests instead of being limited to appending to or changing existing headers only. This feature can likely now be supported with the append actions on the ext_authz response now available in mainline Envoy and drop this commit.
-- `udpa naming workaround`: fixes a change in package dependencies
-- `fix response map from context refactor`: This fixes the above response map commit which needed large changes to be compatible with upstream refactors around contexts
-- `fix busted ext_authz test`: Fixes an ext_authz test broken by our custom commit for the headers
-- `Fixing custom commits`: Removes access log code from the response map commit that no longer compiles after upstream refactors
-- `fix golang filter end_stream=true injected before trailers`: Fixes a crash in the contrib golang HTTP filter (used by Edge Stack's `filter.so`) when data is injected while trailers are pending. Check whether upstream has fixed `contrib/golang/filters/http/source/processor_state.h` before carrying this forward.
+- `fix golang filter end_stream=true injected before trailers`: Fixes a crash in the contrib golang HTTP filter (used by Edge Stack's `filter.so`) when data is injected while trailers are pending. Kept separate from the feature commits so it can be dropped once upstream fixes `contrib/golang/filters/http/source/processor_state.h`.
 
-Some older branches also carry commits that regenerate expired test certificates under `test/config/integration/certs`. Upstream regenerates these periodically, so before cherry-picking them, check whether the certs on your new branch are still valid:
+Branches older than 1.38.4 carry these as many more small commits (fixups such as `udpa naming workaround`, `fix response map from context refactor`, `fix busted ext_authz test`, `Fixing custom commits`) plus commits that regenerate expired test certificates under `test/config/integration/certs`. Upstream regenerates those certs periodically, so before cherry-picking cert commits, check whether the certs on your new branch are still valid:
 
 ```bash
 for f in test/config/integration/certs/*cert.pem; do echo "$f $(openssl x509 -in $f -noout -enddate)"; done
 ```
 
 If they expire more than a year out, skip the cert commits (`expired_cert.pem` is intentionally expired and should be ignored). Also double check that none of the commits you cherry-pick contain leftover `<<<<<<<` conflict markers; it has happened before.
+
+Typical things that break between Envoy minors, all of which showed up in the 1.38 upgrade:
+
+- Bazel external repositories get renamed (for example `@com_github_cncf_udpa` became `@com_github_cncf_xds`, which became `@xds`). Bazel analysis fails within a few minutes with `Repository '@@...' is not defined`; grep our BUILD files for the old name.
+- Filter callback signatures change (for example `route()` now returns `OptRef<const Router::Route>`). These show up as ordinary C++ compile errors near the end of the build.
 
 When you are done, push your new branch to this repo and set this variable to the commit at the head of your branch
 
