@@ -187,6 +187,8 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    export GH_NAME="John Doe" # Your Name for commits
    ```
 
+   These variables only live in the current shell. If you reconnect (or log out and back in for the Docker group step below), export them again before continuing.
+
    **The following steps only need to be done once for the virtual machine**
 
 2. Update packages
@@ -337,10 +339,12 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    ```bash
    curl -O -L "https://golang.org/dl/go${GOVERSION}.linux-${ARCH}.tar.gz" && 
    sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go${GOVERSION}.linux-${ARCH}.tar.gz && 
-   echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile && 
-   source $HOME/.profile &&
+   echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && 
+   source $HOME/.bashrc &&
    go version
    ```
+
+   - `~/.bashrc` is used rather than `~/.profile` so that `go` is on the PATH in non-login shells too (VS Code remote terminals, `tmux`, etc). If `go` disappears after reconnecting, run `source ~/.bashrc`.
 
 8. Setup Helm
 
