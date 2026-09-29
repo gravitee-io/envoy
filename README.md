@@ -314,13 +314,15 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
    ```
 
-   - Configure Docker to start on VM startup (don't worry if you get a `groupadd: group 'docker' already exists`)
+   - Let your user talk to the Docker daemon (don't worry if you get a `groupadd: group 'docker' already exists`)
 
    ```bash
    sudo groupadd docker; \
-   sudo usermod -aG docker $USER; \
-   newgrp docker
+   sudo usermod -aG docker $USER
    ```
+
+   - Then **log out and back in** (close the SSH session and reconnect) so the group membership takes effect. Do **not** use `newgrp docker` for the shell you run the build from: it makes `docker` your primary group, and Envoy's build container runs `groupmod -g $(id -g) envoybuild` on startup, which fails with `groupmod: GID '998' already exists` when that GID is already taken inside the build image. The build then silently does nothing and `make update-base` fails a moment later with `release.tar.zst: Cannot open: No such file or directory`. If you must stay in a `newgrp` shell, run the build with `export USER_GID=$(id -u)` set.
+   - Verify with `docker run --rm hello-world` before moving on.
 
    - Login to docker with the bot account (use the content of the d6edevautomaton.envoyvms.token file in Keybase as the password)
 
