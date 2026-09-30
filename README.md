@@ -72,12 +72,13 @@ git branch -r | grep 'origin/rebase/release/' | sort -V | tail -n 3
 git log --reverse --oneline upstream/release/v1.37..origin/rebase/release/v1.37.5
 ```
 
-Keep the number of commits small: one commit per feature, with any fixups needed for a new Envoy version squashed into the feature commit they belong to. Fewer commits means fewer cherry-picks next time. Record what was folded in (and why) in the commit body so the history of workarounds is still discoverable. As of the 1.38.4 branch there are four commits:
+Keep the number of commits small: one commit per feature, with any fixups needed for a new Envoy version squashed into the feature commit they belong to. Fewer commits means fewer cherry-picks next time. Record what was folded in (and why) in the commit body so the history of workarounds is still discoverable. As of the 1.38.4 branch there are five commits:
 
 - `feat(http1): adds Custom header rewrite rules`: Allows us to support certain header case override functionality not (currently) supported by stock envoy. This is used for the [header_case_overrides][] feature in Edge Stack.
 - `feat(response_map): add custom http filter for modifying responses`: This supports the [custom error responses][] feature in Edge Stack that allows you to send custom static responses back to clients. This can likely be supported with the local reply filters now available in mainline Envoy and drop this commit. Its commit body lists the upstream refactors it has been patched around over the years (udpa/xds repo renames, context refactor, access log changes, `route()` returning `OptRef`).
 - `feat(ext_authz): allow appending non-existent headers`: This supports the amb-sidecar ext_authz filter that supports Edge Stack's `Filter`/`FilterPolicy` features getting the ability to create new headers on requests instead of being limited to appending to or changing existing headers only. This feature can likely now be supported with the append actions on the ext_authz response now available in mainline Envoy and drop this commit.
 - `fix golang filter end_stream=true injected before trailers`: Fixes a crash in the contrib golang HTTP filter (used by Edge Stack's `filter.so`) when data is injected while trailers are pending. Kept separate from the feature commits so it can be dropped once upstream fixes `contrib/golang/filters/http/source/processor_state.h`.
+- `golang: always post continueStatus/sendLocalReply to the dispatcher (#44974)`: Backport of an upstream fix (envoyproxy/envoy#44974, fixing #44704) that never reached `release/v1.38`. Without it, `make check-envoy` (which runs in debug mode) fails `golang_filter_test` and `golang_integration_test` with `assert failure: filterState() == FilterState::ProcessingHeader`, and opt builds silently corrupt the golang filter state machine. Drop this commit on 1.39+.
 
 Branches older than 1.38.4 carry these as many more small commits (fixups such as `udpa naming workaround`, `fix response map from context refactor`, `fix busted ext_authz test`, `Fixing custom commits`) plus commits that regenerate expired test certificates under `test/config/integration/certs`. Upstream regenerates those certs periodically, so before cherry-picking cert commits, check whether the certs on your new branch are still valid:
 
@@ -91,6 +92,7 @@ Typical things that break between Envoy minors, all of which showed up in the 1.
 
 - Bazel external repositories get renamed (for example `@com_github_cncf_udpa` became `@com_github_cncf_xds`, which became `@xds`). Bazel analysis fails within a few minutes with `Repository '@@...' is not defined`; grep our BUILD files for the old name.
 - Filter callback signatures change (for example `route()` now returns `OptRef<const Router::Route>`). These show up as ordinary C++ compile errors near the end of the build.
+- Upstream bugs that only trip `ASSERT`s. Upstream CI runs contrib tests only in its release job with `-c opt`, where asserts are compiled out, but `make check-envoy` runs `-c dbg`. If a contrib test fails consistently with an `assert failure`, check whether upstream `main` already has a fix (search the commit log for the file) and backport it as a separate commit rather than skipping the test.
 
 When you are done, push your new branch to this repo and set this variable to the commit at the head of your branch
 
