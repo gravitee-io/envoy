@@ -472,7 +472,6 @@ CAPIStatus
 Filter::sendLocalReply(ProcessorState& state, Http::Code response_code, std::string body_text,
                        std::function<void(Http::ResponseHeaderMap& headers)> modify_headers,
                        Grpc::Status::GrpcStatus grpc_status, std::string details) {
-  bool on_worker_thread = state.isThreadSafe();
   {
     Thread::LockGuard lock(mutex_);
     if (has_destroyed_) {
@@ -486,12 +485,9 @@ Filter::sendLocalReply(ProcessorState& state, Http::Code response_code, std::str
     ENVOY_LOG(debug, "sendLocalReply, response code: {}", int(response_code));
   }
 
-  // See continueStatus() for the reentrancy/deadlock rationale.
-  if (on_worker_thread) {
-    sendLocalReplyInternal(state, response_code, body_text, modify_headers, grpc_status, details);
-    return CAPIStatus::CAPIOK;
-  }
-
+  // Always post to the dispatcher: inline execution from inside a Go cgo callback
+  // would re-enter the C++ state machine before handle*GolangStatus consumes the
+  // returned status, tripping its ASSERT (see envoyproxy/envoy#44704).
   auto weak_ptr = weak_from_this();
   state.getDispatcher().post([this, &state, weak_ptr, response_code, body_text, modify_headers,
                               grpc_status, details] {
@@ -517,8 +513,6 @@ CAPIStatus Filter::sendPanicReply(ProcessorState& state, absl::string_view detai
 }
 
 CAPIStatus Filter::continueStatus(ProcessorState& state, GolangStatus status) {
-  // isThreadSafe() is a pure thread-id comparison, safe to read without the mutex.
-  bool on_worker_thread = state.isThreadSafe();
   {
     Thread::LockGuard lock(mutex_);
     if (has_destroyed_) {
@@ -532,20 +526,9 @@ CAPIStatus Filter::continueStatus(ProcessorState& state, GolangStatus status) {
     ENVOY_LOG(debug, "golang filter continue from Go, status: {}, state: {}", int(status),
               state.stateStr());
   }
-  // Lock released before calling into the filter chain to avoid deadlocking:
-  // continueStatusInternal() calls hasDestroyed() which re-acquires the non-reentrant mutex_.
-  //
-  // NB: inline execution means continueStatusInternal re-enters the filter chain
-  // (continueProcessing / continueDoData / sendLocalReply) while the cgo call is still on the
-  // stack. This is the same reentrancy model as the existing addData inline path. The unit tests
-  // verify the branch selection but do not reproduce the full cgo-on-stack scenario; the existing
-  // Go integration tests (golang_filter_integration_test) exercise that path end-to-end.
-
-  if (on_worker_thread) {
-    continueStatusInternal(state, status);
-    return CAPIStatus::CAPIOK;
-  }
-
+  // Always post to the dispatcher: inline execution from inside a Go cgo callback
+  // would re-enter the C++ state machine before handle*GolangStatus consumes the
+  // returned status, tripping its ASSERT (see envoyproxy/envoy#44704).
   auto weak_ptr = weak_from_this();
   state.getDispatcher().post([this, &state, weak_ptr, status] {
     if (!weak_ptr.expired() && !hasDestroyed()) {
