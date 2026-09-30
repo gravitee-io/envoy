@@ -201,10 +201,10 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 
 3. Install Dependencies
 
-   - Various dependencies needed by Envoy/Emissary
+   - Various dependencies needed by Envoy/Emissary. `rsync` is required by Emissary's `compile-envoy-protos` step and is not preinstalled on Ubuntu 22.04 images; without it the step deletes `api/envoy` and `pkg/api/envoy` and then fails to copy the regenerated files back (restore with `git checkout -- api pkg/api`, install rsync, rerun `make compile-envoy-protos`).
 
    ```bash
-   sudo apt -y install build-essential libarchive-tools software-properties-common make jq zstd git vim
+   sudo apt -y install build-essential libarchive-tools software-properties-common make jq zstd git vim rsync
    ```
 
 4. Setup Git
