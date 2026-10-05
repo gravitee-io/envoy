@@ -93,6 +93,7 @@ Typical things that break between Envoy minors, all of which showed up in the 1.
 - Bazel external repositories get renamed (for example `@com_github_cncf_udpa` became `@com_github_cncf_xds`, which became `@xds`). Bazel analysis fails within a few minutes with `Repository '@@...' is not defined`; grep our BUILD files for the old name.
 - Filter callback signatures change (for example `route()` now returns `OptRef<const Router::Route>`). These show up as ordinary C++ compile errors near the end of the build.
 - Upstream bugs that only trip `ASSERT`s. Upstream CI runs contrib tests only in its release job with `-c opt`, where asserts are compiled out, but `make check-envoy` runs `-c dbg`. If a contrib test fails consistently with an `assert failure`, check whether upstream `main` already has a fix (search the commit log for the file) and backport it as a separate commit rather than skipping the test.
+- Runtime races that no test suite catches. Envoy 1.37 had a race between worker threads creating the V8 wasm VM at startup, so Edge Stack 3.13.2-3.14.3 crashed on boot for anyone with a wasm `EnvoyFilter` (ES-140), while `make check-envoy` and a single KAT run were green. The build also silently drops the V8 runtime if the bazel `--define wasm=` selection changes. Emissary now has two checks for this class of problem, both of which are part of the flow in [step 7][]: `make check-envoy-contract` (runs inside `make update-base`) and the wasm restart soak `make pytest-wasm-soak`.
 
 When you are done, push your new branch to this repo and set this variable to the commit at the head of your branch
 
@@ -419,6 +420,8 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    make update-base
    ```
 
+   - After building the `base-envoy` image and before pushing it, `make update-base` runs `make check-envoy-contract`: it starts the new `envoy-static-stripped` with `--mode validate` on `_cxx/tools/envoy-contract.yaml`, a bootstrap that instantiates every Envoy extension Emissary / Edge Stack depends on (the wasm filter on `envoy.wasm.runtime.v8` loading `test/wasm-fixture/filter.wasm`, the Go filter, `ext_authz`, `ratelimit`, `lua`, our `response_map` filter, `router`). If it fails with `Failed to create Wasm VM using envoy.wasm.runtime.v8 runtime. Envoy was compiled without support for it`, `no factory found for a required type URL ...` or `Didn't find a registered implementation for 'envoy.filters.http.X'`, the binary was built without something we need (typically a bazel `--define` or a dropped custom commit, see [step 3][]). Fix the branch and tags first; the image must not be pushed in that state. You can rerun the check on its own with `make check-envoy-contract`; it validates the locally built binary when it matches `ENVOY_COMMIT`, otherwise the published image.
+
 6. Run Envoy Tests
 
    - The following command will run a very large number of tests. It can take many hours to complete. A few tests might fail/flake throughout this process. This is expected. If any tests do flake, simply run the command again after it has finished and it will re-run the failed tests and skip over the tests that passed.
@@ -427,9 +430,30 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    make check-envoy
    ```
 
+   - `make check-envoy` runs `make check-envoy-contract` first, so a binary missing an extension fails here as well, within a minute, before Bazel starts compiling tests.
    - take a screenshot of the output saying that the tests passed so that you can include it on the PR for upgrading Emissary.
 
-7. Update the Envoy Go Control Plane
+7. Run the wasm restart soak
+
+   - This is the regression check for ES-140 (see the list of things that break between minors in [step 3][]). The Envoy unit tests and a single KAT run do not exercise it, and the GitHub-hosted CI runners only have 4 vCPUs, which is not enough parallelism to reproduce the race, so it is run by hand on the build VM as part of every Envoy bump. The test installs Emissary as a Deployment with `ENVOY_CONCURRENCY=8`, a wasm `EnvoyFilter` running `test/wasm-fixture/filter.wasm` and ~300 Mappings, restarts it 15 times, and fails on any container restart, on `SIGSEGV` / `Segmentation fault` / `Failed to clone Base Wasm` in the Envoy log, or on a routed response without the filter's `x-wasm-filter: processed` header. The full description is in `DevDocumentation/DEVELOPING.md` under "Making changes to Envoy".
+   - It needs a Kubernetes cluster and a registry the cluster can pull from, exactly like the KAT tests. On the VM, the simplest option is the same k3d cluster CI uses plus your Docker Hub namespace (you need to be logged in with push permission; CI uses the same `DEV_REGISTRY` mechanism):
+
+   ```bash
+   make ci/setup-k3d && 
+   export DEV_KUBECONFIG=~/.kube/config && 
+   export DEV_REGISTRY=docker.io/<your dockerhub namespace> && 
+   export DEV_KUBE_NO_PVC=yes
+   ```
+
+   - Then run the soak. It builds and pushes the Emissary test images first, so the first run takes a while; the soak itself is 15 rollouts, roughly 10-20 minutes.
+
+   ```bash
+   make pytest-wasm-soak
+   ```
+
+   - A failure here means the new Envoy is not safe to ship with wasm filters, even if `make check-envoy` passed. Keep the pytest output (it names the iteration and the crash signature) for the Emissary PR, and look at the `--previous` container log of the ambassador pod for the Envoy stack trace.
+
+8. Update the Envoy Go Control Plane
 
    ```bash
    make guess-envoy-go-control-plane-commit
@@ -448,7 +472,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    make generate
    ```
 
-8. Mirroring the base envoy images
+9. Mirroring the base envoy images
 
    - First, you will need to setup gcloud auth for docker so that you can mirror the dockerhub image for base envoy over to gcr. This step is required for your PR to upgrade Envoy in Emissary Ingress to pass CI.
 
@@ -471,7 +495,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
    docker push gcr.io/datawire/ambassador-base:envoy-0.${COMMIT_HASH}.opt
    ```
 
-9. Push your changes
+10. Push your changes
 
    - Once all of the above are finished, you're almost done. Just commit your changes, push the branch, and then open a PR in <https://github.com/datawire/emissary>. Once that PR merges, you can open a PR in <https://github.com/datawire/apro> to upgrade Edge Stack's Emissary dependency to the version that has the updated Envoy image.
 
@@ -482,6 +506,7 @@ The steps here will assume you have some familiarity with Google Cloud Platform 
 [step 3]: #3-add-our-custom-commits-to-your-new-branch
 [step 4]: #4-create-new-tags
 [step 5]: #5-vm-creation-guide-for-building--testing-envoy
+[step 7]: #7-building-testing-and-updating-envoy-for-emissary--edge-stack
 
 [for a guide on setting up VSCode over SSH, refer to this doc]: ./VSCODE_WITH_SSH.md
 
